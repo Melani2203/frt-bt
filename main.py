@@ -55,7 +55,6 @@ async def calendario26(ctx):
 
     await ctx.send(embed=embed, view=BotonCalendario())
 
-   print("TOKEN:", TOKEN)
-
 # Ejecutar
+print("TOKEN:", TOKEN)
 bot.run(TOKEN)
