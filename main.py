@@ -33,20 +33,29 @@ async def ping(ctx):
     await ctx.send(embed=embed)
 
 # Comando ,calendario2026
+class BotonCalendario(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+
+        self.add_item(discord.ui.Button(
+            label="📥 Descargar calendario",
+            url="https://raw.githubusercontent.com/Melani2203/archivos-bot/main/CA2026.pdf"
+        ))
+
 @bot.command()
-async def calendario2026(ctx):
+async def calendario(ctx):
     embed = discord.Embed(
-        description="# Calendario Académico 2026 \n\n\n"
-                    "Adjunto el calendario académico en PDF :point_up_2:.\n\n"
+        description="# 📅 Calendario Académico\n\n"
+                    "Podés descargar el calendario usando el botón de abajo 👇\n\n"
                     "También podés consultarlo en la página oficial de la facultad:\n"
                     "🔗 https://frt.utn.edu.ar/ \n"
                     "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
         color=discord.Color.orange()
     )
 
-    file = discord.File("CA2026.pdf", filename="CA2026.pdf")
+    await ctx.send(embed=embed, view=BotonCalendario())
 
-    await ctx.send(embed=embed, file=file)
+   
 
 # Ejecutar
 bot.run(TOKEN)
