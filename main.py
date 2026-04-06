@@ -33,7 +33,7 @@ async def ping(ctx):
 
     await ctx.send(embed=embed)
 
-# Comando ,calendario2026
+# Comando ,calendario26
 class BotonCalendario(discord.ui.View):
     def __init__(self):
         super().__init__()
@@ -52,6 +52,8 @@ async def calendario26(ctx):
                     "🔗 https://frt.utn.edu.ar/ \n"
                     "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
         color=discord.Color.orange()
+
+        print("COMANDO EJECUTADO")
     )
 
     await ctx.send(embed=embed, view=BotonCalendario())
