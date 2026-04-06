@@ -43,7 +43,7 @@ class BotonCalendario(discord.ui.View):
         ))
 
 @bot.command()
-async def calendario(ctx):
+async def calendario26(ctx):
     embed = discord.Embed(
         description="# 📅 Calendario Académico\n\n"
                     "Podés descargar el calendario usando el botón de abajo 👇\n\n"
