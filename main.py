@@ -4,8 +4,9 @@ import os
 from dotenv import load_dotenv
 
 # Cargar token
-load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
+TOKEN = os.environ.get("DISCORD_TOKEN")
+
+print("TOKEN:", TOKEN)
 
 # Intents
 intents = discord.Intents.default()
@@ -56,5 +57,4 @@ async def calendario26(ctx):
     await ctx.send(embed=embed, view=BotonCalendario())
 
 # Ejecutar
-print("TOKEN:", TOKEN)
 bot.run(TOKEN)
