@@ -57,13 +57,81 @@ async def calendario26(ctx):
 
     await ctx.send(embed=embed, view=BotonCalendario())
 
-    # Preguntas frecuentes **************************************
+# Preguntas frecuentes **************************************
+# ===== SELECT DE PREGUNTAS =====
+class PreguntaDetalleSelect(discord.ui.Select):
+    def __init__(self, categoria):
+        self.categoria = categoria
+
+        if categoria == "inscripciones":
+            options = [
+                discord.SelectOption(label="¿Cuándo son las inscripciones?"),
+                discord.SelectOption(label="¿Cómo me anoto?"),
+            ]
+
+        elif categoria == "examenes":
+            options = [
+                discord.SelectOption(label="¿Qué es un integral?"),
+                discord.SelectOption(label="¿Cómo recupero un parcial?"),
+            ]
+
+        elif categoria == "cursado":
+            options = [
+                discord.SelectOption(label="¿Cómo son los horarios?"),
+                discord.SelectOption(label="¿Hay asistencia obligatoria?"),
+            ]
+
+        super().__init__(
+            placeholder="Seleccioná una pregunta...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        respuesta = ""
+
+        if self.values[0] == "¿Cuándo son las inscripciones?":
+            respuesta = "Las inscripciones se realizan según el calendario académico."
+
+        elif self.values[0] == "¿Cómo me anoto?":
+            respuesta = "Debés ingresar al sistema Sysacad y seleccionar las materias."
+
+        elif self.values[0] == "¿Qué es un integral?":
+            respuesta = "Es un examen recuperatorio global de la materia."
+
+        elif self.values[0] == "¿Cómo recupero un parcial?":
+            respuesta = "Podés rendir recuperatorio en fechas establecidas."
+
+        elif self.values[0] == "¿Cómo son los horarios?":
+            respuesta = "Se publican al inicio de cada cuatrimestre."
+
+        elif self.values[0] == "¿Hay asistencia obligatoria?":
+            respuesta = "Sí, generalmente se exige un porcentaje mínimo."
+
+        embed = discord.Embed(
+            title=self.values[0],
+            description=respuesta,
+            color=discord.Color.green()
+        )
+
+        await interaction.response.edit_message(embed=embed, view=self.view)
+
+
+# ===== VIEW DE PREGUNTAS =====
+class PreguntaDetalleView(discord.ui.View):
+    def __init__(self, categoria):
+        super().__init__()
+        self.add_item(PreguntaDetalleSelect(categoria))
+
+
+# ===== SELECT DE CATEGORÍAS =====
 class PreguntasSelect(discord.ui.Select):
     def __init__(self):
         options = [
-            discord.SelectOption(label="📚 Inscripciones", description="Fechas y requisitos"),
-            discord.SelectOption(label="📝 Exámenes", description="Parciales e integrales"),
-            discord.SelectOption(label="🏫 Cursado", description="Horarios y materias"),
+            discord.SelectOption(label="📚 Inscripciones"),
+            discord.SelectOption(label="📝 Exámenes"),
+            discord.SelectOption(label="🏫 Cursado"),
         ]
 
         super().__init__(
@@ -74,39 +142,42 @@ class PreguntasSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        if self.values[0] == "📚 Inscripciones":
-            embed = discord.Embed(
-                title="📚 Inscripciones",
-                description="• ¿Cuándo son las inscripciones?\n• ¿Cómo me anoto?\n• Requisitos necesarios",
-                color=discord.Color.blue()
-            )
+        categoria = ""
 
-        elif self.values[0] == "📝 Exámenes":
-            embed = discord.Embed(
-                title="📝 Exámenes",
-                description="• ¿Qué es un integral?\n• Fechas de parciales\n• Cómo recuperar",
-                color=discord.Color.green()
-            )
+        if "Inscripciones" in self.values[0]:
+            categoria = "inscripciones"
 
-        elif self.values[0] == "🏫 Cursado":
-            embed = discord.Embed(
-                title="🏫 Cursado",
-                description="• Horarios\n• Modalidad\n• Asistencia",
-                color=discord.Color.orange()
-            )
+        elif "Exámenes" in self.values[0]:
+            categoria = "examenes"
 
-        await interaction.response.edit_message(embed=embed, view=self.view)
+        elif "Cursado" in self.values[0]:
+            categoria = "cursado"
 
+        embed = discord.Embed(
+            title=self.values[0],
+            description="Seleccioná una pregunta 👇",
+            color=discord.Color.blue()
+        )
+
+        await interaction.response.edit_message(
+            embed=embed,
+            view=PreguntaDetalleView(categoria)
+        )
+
+
+# ===== VIEW PRINCIPAL =====
 class PreguntasView(discord.ui.View):
     def __init__(self):
         super().__init__()
         self.add_item(PreguntasSelect())
 
+
+# ===== COMANDO =====
 @bot.command()
 async def preguntas(ctx):
     embed = discord.Embed(
         title="❓ Preguntas Frecuentes",
-        description="Seleccioná una categoría en el menú de abajo 👇",
+        description="Seleccioná una categoría 👇",
         color=discord.Color.red()
     )
 
