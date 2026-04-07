@@ -58,10 +58,12 @@ async def calendario26(ctx):
     await ctx.send(embed=embed, view=BotonCalendario())
 
 # Preguntas frecuentes **************************************
+
 # ===== SELECT DE PREGUNTAS =====
 class PreguntaDetalleSelect(discord.ui.Select):
     def __init__(self, categoria):
         self.categoria = categoria
+        options = []
 
         if categoria == "inscripciones":
             options = [
@@ -126,17 +128,25 @@ Luego deberás esperar que sea tratado por el Consejo Directivo quien definirá 
 Finalmente podés consultar la respuesta en Dpto. Alumnos.
 
 **📖 Art. 5.3.1:**
-“Cuando al alumno le faltare para terminar de cursar su carrera, un número de asignaturas cuya carga horaria no supere el equivalente del último año de cursado de la misma, no se aplicarán las exigencias del Régimen de Correlativas para el cursado; esta norma no lo exime de respetar el Régimen de Correlativas para rendir la evaluación final de las asignaturas cursadas en estas condiciones. En el caso que la carrera tenga en su último nivel un cuatrimestre, se tomará lo anterior o hasta (30) horas, según resulte el número mayor”
+“Cuando al alumno le faltare para terminar de cursar su carrera, un número de asignaturas cuya carga horaria no supere el equivalente del último año de cursado de la misma, no se aplicarán las exigencias del Régimen de Correlativas para el cursado; esta norma no lo exime de respetar el Régimen de Correlativas para rendir la evaluación final de las asignaturas cursadas en estas condiciones. En el caso que la carrera tenga en su último nivel un cuatrimestre, se tomará lo anterior o hasta (30) horas, según resulte el número mayor”.
 """
 
         elif self.values[0] == "¿Cómo inscribirme fuera de término?":
-            respuesta = """Tenés que confeccionar una nota (busca el modelo de la nota por la Secretaría de Asuntos Estudiantiles) indicando el motivo por el cual no pudiste inscribirte en término, adjuntando documentación necesaria en el caso que corresponda. 
-Presentás esta nota por Dpto. Mesa de Entrada y esperas que Secretaría Académica evalúe el pedido. Luego consultas la respuesta en el Dpto. Alumnos.     
+            respuesta = """Tenés que confeccionar una nota (busca el modelo en Secretaría de Asuntos Estudiantiles) indicando el motivo y adjuntando documentación si corresponde.
+
+Presentás la nota en Mesa de Entrada y esperás que Secretaría Académica evalúe el pedido.
+
+Luego consultás la respuesta en el Dpto. Alumnos.
+
 Se recomienda hacerlo lo antes posible."""
 
         elif self.values[0] == "¿Cómo cambiarme de comisión?":
-            respuesta = """Para cambiarte de comisión deben existir motivos de peso y documentados para pedir el cambio, como ser razones laborales u otras actividades comprobables.
-Tenés que confeccionar nota pidiendo el cambio de comisión (busca el modelo de la nota por la Secretaría de Asuntos Estudiantiles), indicando el motivo y adjuntando la documentación necesaria, luego presentas la nota por Dpto. Mesa de Entrada y tenés que esperar que Secretaría Académica evalué el pedido, luego consultas la respuesta en el Dpto. Alumnos. 
+            respuesta = """Para cambiarte de comisión deben existir motivos de peso (ej: trabajo u otras actividades comprobables).
+
+Debés confeccionar una nota indicando el motivo y adjuntar documentación.
+
+Luego presentás la nota en Mesa de Entrada y esperás que Secretaría Académica evalúe el pedido.
+
 No siempre está garantizado el cambio."""
 
         embed = discord.Embed(
@@ -145,7 +155,12 @@ No siempre está garantizado el cambio."""
             color=discord.Color.green()
         )
 
-        await interaction.response.edit_message(embed=embed, view=self.view)
+        embed.set_footer(text="Facultad Regional Tucumán")
+
+        await interaction.response.edit_message(
+            embed=embed,
+            view=PreguntaDetalleView(self.categoria)
+        )
 
 
 # ===== BOTÓN VOLVER =====
@@ -181,7 +196,7 @@ class PreguntasSelect(discord.ui.Select):
             discord.SelectOption(label="📚 Inscripciones"),
             discord.SelectOption(label="📝 Exámenes"),
             discord.SelectOption(label="🏫 Cursado"),
-            discord.SelectOption(label="📄 Presentación de notas"),  # 👈 NUEVA
+            discord.SelectOption(label="📄 Presentación de notas"),
         ]
 
         super().__init__(
@@ -235,6 +250,7 @@ async def preguntas(ctx):
     )
 
     await ctx.send(embed=embed, view=PreguntasView())
+
 # **************************************
 
 # Ejecutar
