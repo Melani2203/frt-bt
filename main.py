@@ -71,7 +71,7 @@ class PreguntaDetalleSelect(discord.ui.Select):
 
         elif categoria == "examenes":
             options = [
-                discord.SelectOption(label="¿Qué es un integral?"),
+                discord.SelectOption(label="¿Qué haterias hay en cada mesa?"),
                 discord.SelectOption(label="¿Cómo recupero un parcial?"),
             ]
 
@@ -79,6 +79,13 @@ class PreguntaDetalleSelect(discord.ui.Select):
             options = [
                 discord.SelectOption(label="¿Cómo son los horarios?"),
                 discord.SelectOption(label="¿Hay asistencia obligatoria?"),
+            ]
+
+        elif categoria == "presentación de notas":
+            options = [
+                discord.SelectOption(label="¿Que es la 5.3.1? ¿Cómo hago para pedir la excepción al articulo 5.3.1 o la aplicación del Artículo 5.3.1 del Reglamento de Estudios – Ordenanza 1149 (*)?"),
+                discord.SelectOption(label="¿Cómo hago para inscribirme fuera de término?"),
+                discord.SelectOption(label="¿Cómo hago para cambiarme de comisión?"),
             ]
 
         super().__init__(
@@ -108,6 +115,19 @@ class PreguntaDetalleSelect(discord.ui.Select):
 
         elif self.values[0] == "¿Hay asistencia obligatoria?":
             respuesta = "Sí, generalmente se exige un porcentaje mínimo."
+
+         elif self.values[0] == "¿Que es la 5.3.1? ¿Cómo hago para pedir la excepción al articulo 5.3.1 o la aplicación del Artículo 5.3.1 del Reglamento de Estudios – Ordenanza 1149 (*)?":
+            respuesta = """**📌 Requisitos:**
+            Para pedir la excepción al art. 5.3.1 debés estar cursando las últimas materias de la carrera y no tener superposición entre horarios.
+
+            **📝 Procedimiento:**
+            Tenés que confeccionar una nota (ver modelo en Secretaría de Asuntos Estudiantiles) y presentarla en Mesa de Entrada.
+            Luego deberá ser tratada por el Consejo Directivo.
+            Finalmente podés consultar la respuesta en Dpto. Alumnos.
+
+            **📖 Art. 5.3.1:**
+            “Cuando al alumno le faltare para terminar de cursar su carrera, un número de asignaturas cuya carga horaria no supere el equivalente del último año de cursado de la misma...”
+            """
 
         embed = discord.Embed(
             title=self.values[0],
