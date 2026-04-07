@@ -53,7 +53,6 @@ async def calendario26(ctx):
                     "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
         color=discord.Color.orange()
 
-        print("COMANDO EJECUTADO")
     )
 
     await ctx.send(embed=embed, view=BotonCalendario())
