@@ -122,29 +122,21 @@ Para pedir la excepción al art. 5.3.1 debés estar cursando las últimas materi
 
 **📝 Procedimiento:**
 Tenés que confeccionar una nota (ver modelo en Secretaría de Asuntos Estudiantiles) y presentarla en Mesa de Entrada.
-Luego deberá ser tratada por el Consejo Directivo.
+Luego deberás esperar que sea tratado por el Consejo Directivo quien definirá si se aprueba el pedido y se da curso para que sea tratado por Consejo Superior, o si rechaza el mismo.
 Finalmente podés consultar la respuesta en Dpto. Alumnos.
 
 **📖 Art. 5.3.1:**
-“Cuando al alumno le faltare para terminar de cursar su carrera, un número de asignaturas cuya carga horaria no supere el equivalente del último año de cursado de la misma...”
+“Cuando al alumno le faltare para terminar de cursar su carrera, un número de asignaturas cuya carga horaria no supere el equivalente del último año de cursado de la misma, no se aplicarán las exigencias del Régimen de Correlativas para el cursado; esta norma no lo exime de respetar el Régimen de Correlativas para rendir la evaluación final de las asignaturas cursadas en estas condiciones. En el caso que la carrera tenga en su último nivel un cuatrimestre, se tomará lo anterior o hasta (30) horas, según resulte el número mayor”
 """
 
         elif self.values[0] == "¿Cómo inscribirme fuera de término?":
-            respuesta = """Debés presentar una nota en Mesa de Entrada explicando el motivo.
-
-Luego:
-• Será evaluada por las autoridades correspondientes  
-• Puede ser aprobada o rechazada  
-
+            respuesta = """Tenés que confeccionar una nota (busca el modelo de la nota por la Secretaría de Asuntos Estudiantiles) indicando el motivo por el cual no pudiste inscribirte en término, adjuntando documentación necesaria en el caso que corresponda. 
+Presentás esta nota por Dpto. Mesa de Entrada y esperas que Secretaría Académica evalúe el pedido. Luego consultas la respuesta en el Dpto. Alumnos.     
 Se recomienda hacerlo lo antes posible."""
 
         elif self.values[0] == "¿Cómo cambiarme de comisión?":
-            respuesta = """Para cambiarte de comisión:
-
-• Consultá disponibilidad en otras comisiones  
-• Presentá una solicitud (nota o sistema, según corresponda)  
-• Esperá la aprobación del departamento o docente  
-
+            respuesta = """Para cambiarte de comisión deben existir motivos de peso y documentados para pedir el cambio, como ser razones laborales u otras actividades comprobables.
+Tenés que confeccionar nota pidiendo el cambio de comisión (busca el modelo de la nota por la Secretaría de Asuntos Estudiantiles), indicando el motivo y adjuntando la documentación necesaria, luego presentas la nota por Dpto. Mesa de Entrada y tenés que esperar que Secretaría Académica evalué el pedido, luego consultas la respuesta en el Dpto. Alumnos. 
 No siempre está garantizado el cambio."""
 
         embed = discord.Embed(
