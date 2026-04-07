@@ -117,12 +117,28 @@ class PreguntaDetalleSelect(discord.ui.Select):
 
         await interaction.response.edit_message(embed=embed, view=self.view)
 
+class VolverButton(discord.ui.Button):
+    def __init__(self):
+        super().__init__(label="⬅️ Volver", style=discord.ButtonStyle.secondary)
+
+    async def callback(self, interaction: discord.Interaction):
+        embed = discord.Embed(
+            title="❓ Preguntas Frecuentes",
+            description="Seleccioná una categoría 👇",
+            color=discord.Color.red()
+        )
+
+        await interaction.response.edit_message(
+            embed=embed,
+            view=PreguntasView()
+        )
 
 # ===== VIEW DE PREGUNTAS =====
 class PreguntaDetalleView(discord.ui.View):
     def __init__(self, categoria):
         super().__init__()
         self.add_item(PreguntaDetalleSelect(categoria))
+        self.add_item(VolverButton())
 
 
 # ===== SELECT DE CATEGORÍAS =====
