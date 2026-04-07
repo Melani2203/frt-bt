@@ -58,5 +58,62 @@ async def calendario26(ctx):
 
     await ctx.send(embed=embed, view=BotonCalendario())
 
+    # Preguntas frecuentes **************************************
+class PreguntasSelect(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(label="📚 Inscripciones", description="Fechas y requisitos"),
+            discord.SelectOption(label="📝 Exámenes", description="Parciales e integrales"),
+            discord.SelectOption(label="🏫 Cursado", description="Horarios y materias"),
+        ]
+
+        super().__init__(
+            placeholder="Seleccioná una categoría...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        if self.values[0] == "📚 Inscripciones":
+            embed = discord.Embed(
+                title="📚 Inscripciones",
+                description="• ¿Cuándo son las inscripciones?\n• ¿Cómo me anoto?\n• Requisitos necesarios",
+                color=discord.Color.blue()
+            )
+
+        elif self.values[0] == "📝 Exámenes":
+            embed = discord.Embed(
+                title="📝 Exámenes",
+                description="• ¿Qué es un integral?\n• Fechas de parciales\n• Cómo recuperar",
+                color=discord.Color.green()
+            )
+
+        elif self.values[0] == "🏫 Cursado":
+            embed = discord.Embed(
+                title="🏫 Cursado",
+                description="• Horarios\n• Modalidad\n• Asistencia",
+                color=discord.Color.orange()
+            )
+
+        await interaction.response.edit_message(embed=embed, view=self.view)
+
+class PreguntasView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.add_item(PreguntasSelect())
+
+@bot.command()
+async def preguntas(ctx):
+    embed = discord.Embed(
+        title="❓ Preguntas Frecuentes",
+        description="Seleccioná una categoría en el menú de abajo 👇",
+        color=discord.Color.red()
+    )
+
+    await ctx.send(embed=embed, view=PreguntasView())
+
+# **************************************
+
 # Ejecutar
 bot.run(TOKEN)
