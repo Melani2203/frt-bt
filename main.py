@@ -44,7 +44,16 @@ async def calendario26(ctx):
 
     await ctx.send(embed=embed, view=BotonCalendario())
 
-# ******************************************** Preguntas frecuentes **************************************
+# ******* BOTON SYSACAD *******
+class BotonSysacad(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+
+        self.add_item(discord.ui.Button(
+            label="🌐 Ir a Sysacad",
+            url="https://sysacad.frt.utn.edu.ar/"
+        ))
+
 
 # ********************* PREGUNTAS ************************
 class PreguntaDetalleSelect(discord.ui.Select):
@@ -55,7 +64,7 @@ class PreguntaDetalleSelect(discord.ui.Select):
         if categoria == "inscripciones":
             options = [
                 discord.SelectOption(label="¿Cuándo son las inscripciones?"),
-                discord.SelectOption(label="¿Cómo me anoto?"),
+                discord.SelectOption(label="¿Cómo me anoto al cursado de una materia?"),
             ]
 
         elif categoria == "examenes finales":
@@ -86,35 +95,35 @@ class PreguntaDetalleSelect(discord.ui.Select):
             options=options
         )
 
-# ************************ RESPUESTAS ************************
     async def callback(self, interaction: discord.Interaction):
         respuesta = ""
-# ******************************** INSCRIPCIONES **********************************
+
+        # ************************ INSCRIPCIONES ************************
         if self.values[0] == "¿Cuándo son las inscripciones?":
             respuesta = "Las inscripciones se realizan según el calendario académico. Lo pueden revisar con el comando **,calendario26** "
 
         elif self.values[0] == "¿Cómo me anoto al cursado de una materia?":
             respuesta = """Debés ingresar al sistema de autogestion de la facultad “Sysacad”. 
-            Podes hacerlo tocando el boton de abajo que te llevara directo a la pagina de autogestion. Si es la primera vez que ingresas tu usuario va a ser numero de lajago y tu contraseña tu DNI.
-            En que no te deje ingresar acercate por Secretaria de Asuntos Estudiantiles o Dpto. Alumnos para restablecer tu contraseña.
-            Una vez que ingreses entras a la seccion de inscripción al cursado y seleccionas las materias y comisiones en las que queres anotarte.
-            Si no te deja anotarte por ahi intenta nuevamente en los dias siguientes o llegate por Dpto. Alumnos para presentar una nota de Inscripcion fuera de termino/Ampliación de cupos."""
-            
+Podes hacerlo tocando el boton de abajo que te llevara directo a la pagina de autogestion. Si es la primera vez que ingresas tu usuario va a ser numero de lajago y tu contraseña tu DNI.
+En que no te deje ingresar acercate por Secretaria de Asuntos Estudiantiles o Dpto. Alumnos para restablecer tu contraseña.
+Una vez que ingreses entras a la seccion de inscripción al cursado y seleccionas las materias y comisiones en las que queres anotarte.
+Si no te deja anotarte por ahi intenta nuevamente en los dias siguientes o llegate por Dpto. Alumnos para presentar una nota de Inscripcion fuera de termino/Ampliación de cupos."""
+
             embed = discord.Embed(
-        title=self.values[0],
-        description=respuesta,
-        color=discord.Color.green()
-    )
+                title=self.values[0],
+                description=respuesta,
+                color=discord.Color.green()
+            )
 
-    embed.set_footer(text="Facultad Regional Tucumán")
+            embed.set_footer(text="Facultad Regional Tucumán")
 
-    await interaction.response.edit_message(
-        embed=embed,
-        view=BotonSysacad()
-    )
-    return
-    
-# ****************************** EXAMENES FINALES ******************************
+            await interaction.response.edit_message(
+                embed=embed,
+                view=BotonSysacad()
+            )
+            return
+
+        # ************************ EXAMENES ************************
         elif self.values[0] == "¿Qué materias hay en cada mesa de examen final?":
             respuesta = "Podes revisar que materias hay en cada mesa en . . ."
 
@@ -123,36 +132,36 @@ class PreguntaDetalleSelect(discord.ui.Select):
 
         elif self.values[0] == "¿Cómo me anoto a un examen final?":
             respuesta = """Debés ingresar al sistema de autogestion de la facultad “Sysacad”. 
-            Podes hacerlo tocando el boton de abajo que te llevara directo a la pagina de autogestion. Si es la primera vez que ingresas tu usuario va a ser numero de lajago y tu contraseña tu DNI.
-            En que no te deje ingresar acercate por Secretaria de Asuntos Estudiantiles o Dpto. Alumnos para restablecer tu contraseña.
-            Una vez que ingreses entras a la seccion de inscripción a examenes y seleccionas las materias en las que queres anotarte.
-            Cualquier inconveniente podes llegar a consultar en Dpto. Legajos y Actas"""
+Podes hacerlo tocando el boton de abajo que te llevara directo a la pagina de autogestion. Si es la primera vez que ingresas tu usuario va a ser numero de lajago y tu contraseña tu DNI.
+En que no te deje ingresar acercate por Secretaria de Asuntos Estudiantiles o Dpto. Alumnos para restablecer tu contraseña.
+Una vez que ingreses entras a la seccion de inscripción a examenes y seleccionas las materias en las que queres anotarte.
+Cualquier inconveniente podes llegar a consultar en Dpto. Legajos y Actas"""
 
-    embed = discord.Embed(
-        title=self.values[0],
-        description=respuesta,
-        color=discord.Color.green()
-    )
+            embed = discord.Embed(
+                title=self.values[0],
+                description=respuesta,
+                color=discord.Color.green()
+            )
 
-    embed.set_footer(text="Facultad Regional Tucumán")
+            embed.set_footer(text="Facultad Regional Tucumán")
 
-    await interaction.response.edit_message(
-        embed=embed,
-        view=BotonSysacad()
-    )
-    return
+            await interaction.response.edit_message(
+                embed=embed,
+                view=BotonSysacad()
+            )
+            return
 
         elif self.values[0] == "¿Puedo rendir un examen final sin tener libreta universitaria?":
             respuesta = ""
 
-# ********************************** CURSADO *********************************
+        # ************************ CURSADO ************************
         elif self.values[0] == "¿Cómo son los horarios?":
             respuesta = "Se publican al inicio de cada cuatrimestre."
 
         elif self.values[0] == "¿Hay asistencia obligatoria?":
             respuesta = "Sí, generalmente se exige un porcentaje de mínimo 75% de asistencia."
 
-# ****************************** PRESENTACION DE NOTAS *********************************
+        # ************************ PRESENTACION ************************
         elif self.values[0] == "¿Qué es la 5.3.1 y cómo pedir la excepción?":
             respuesta = """**📌 Requisitos:**
 Para pedir la excepción al art. 5.3.1 debés estar cursando las últimas materias de la carrera y no tener superposición entre horarios.
@@ -167,19 +176,14 @@ Finalmente podés consultar la respuesta en Dpto. Alumnos.
 """
 
         elif self.values[0] == "¿Cómo inscribirme fuera de término?":
-            respuesta = """Tenés que confeccionar una nota (busca el modelo en Secretaría de Asuntos Estudiantiles) indicando el motivo y adjuntando documentación si corresponde.
-
-Presentás la nota en Mesa de Entrada y esperás que Secretaría Académica evalúe el pedido.
-
-Luego consultás la respuesta en el Dpto. Alumnos.
-
+            respuesta = """Tenés que confeccionar una nota (busca el modelo de la nota por la Secretaría de Asuntos Estudiantiles) indicando el motivo por el cual no pudiste inscribirte en término, adjuntando documentación necesaria en el caso que corresponda. 
+Presentás esta nota por Dpto. Mesa de Entrada y esperas que Secretaría Académica evalúe el pedido. Luego consultas la respuesta en el Dpto. Alumnos.     
 Se recomienda hacerlo lo antes posible."""
 
         elif self.values[0] == "¿Cómo cambiarme de comisión?":
-            respuesta = """Para cambiarte de comisión deben existir motivos de peso (ej: trabajo u otras actividades comprobables).
-Debés confeccionar una nota indicando el motivo y adjuntar documentación.
-Luego presentás la nota en Mesa de Entrada y esperás que Secretaría Académica evalúe el pedido.
-**No siempre está garantizado el cambio.**"""
+            respuesta = """Para cambiarte de comisión deben existir motivos de peso y documentados para pedir el cambio, como ser razones laborales u otras actividades comprobables.
+Tenés que confeccionar nota pidiendo el cambio de comisión (busca el modelo de la nota por la Secretaría de Asuntos Estudiantiles), indicando el motivo y adjuntando la documentación necesaria, luego presentas la nota por Dpto. Mesa de Entrada y tenés que esperar que Secretaría Académica evalúe el pedido, luego consultas la respuesta en el Dpto. Alumnos. 
+No siempre está garantizado el cambio."""
 
         embed = discord.Embed(
             title=self.values[0],
@@ -193,7 +197,6 @@ Luego presentás la nota en Mesa de Entrada y esperás que Secretaría Académic
             embed=embed,
             view=PreguntaDetalleView(self.categoria)
         )
-
 
 # ===== BOTÓN VOLVER =====
 class VolverButton(discord.ui.Button):
