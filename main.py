@@ -12,7 +12,7 @@ print("TOKEN:", TOKEN)
 intents = discord.Intents.default()
 intents.message_content = True
 
-# Prefijo de comandos (!)
+# Prefijo de comandos (,)
 bot = commands.Bot(command_prefix=",", intents=intents)
 
 # Evento cuando el bot prende
@@ -20,20 +20,7 @@ bot = commands.Bot(command_prefix=",", intents=intents)
 async def on_ready():
     print(f"Conectado como {bot.user}")
 
-# Comando ,ping
-@bot.command()
-async def ping(ctx):
-    latency = round(bot.latency * 1000)
-
-    embed = discord.Embed(
-        title="🏓 Pong!",
-        description=f"{ctx.author.mention} Tu ping es **{latency}ms**",
-        color=discord.Color.red()
-    )
-
-    await ctx.send(embed=embed)
-
-# Comando ,calendario26
+# ************************************** Comando ,calendario26 ************************************
 class BotonCalendario(discord.ui.View):
     def __init__(self):
         super().__init__()
@@ -57,9 +44,9 @@ async def calendario26(ctx):
 
     await ctx.send(embed=embed, view=BotonCalendario())
 
-# Preguntas frecuentes **************************************
+# ******************************************** Preguntas frecuentes **************************************
 
-# ===== SELECT DE PREGUNTAS =====
+# ********************* PREGUNTAS ************************
 class PreguntaDetalleSelect(discord.ui.Select):
     def __init__(self, categoria):
         self.categoria = categoria
@@ -71,10 +58,12 @@ class PreguntaDetalleSelect(discord.ui.Select):
                 discord.SelectOption(label="¿Cómo me anoto?"),
             ]
 
-        elif categoria == "examenes":
+        elif categoria == "examenes finales":
             options = [
-                discord.SelectOption(label="¿Qué materias hay en cada mesa?"),
-                discord.SelectOption(label="¿Cómo recupero un parcial?"),
+                discord.SelectOption(label="¿Qué materias hay en cada mesa de examen final?"),
+                discord.SelectOption(label="¿Cuales son las fechas de examenes finales?"),
+                discord.SelectOption(label="¿Cómo me anoto a un examen final?"),
+                discord.SelectOption(label="¿Puedo rendir un examen final sin tener libreta universitaria?"),
             ]
 
         elif categoria == "cursado":
@@ -97,27 +86,73 @@ class PreguntaDetalleSelect(discord.ui.Select):
             options=options
         )
 
+# ************************ RESPUESTAS ************************
     async def callback(self, interaction: discord.Interaction):
         respuesta = ""
-
+# ******************************** INSCRIPCIONES **********************************
         if self.values[0] == "¿Cuándo son las inscripciones?":
-            respuesta = "Las inscripciones se realizan según el calendario académico."
+            respuesta = "Las inscripciones se realizan según el calendario académico. Lo pueden revisar con el comando **,calendario26** "
 
-        elif self.values[0] == "¿Cómo me anoto?":
-            respuesta = "Debés ingresar al sistema Sysacad y seleccionar las materias."
+        elif self.values[0] == "¿Cómo me anoto al cursado de una materia?":
+            respuesta = """Debés ingresar al sistema de autogestion de la facultad “Sysacad”. 
+            Podes hacerlo tocando el boton de abajo que te llevara directo a la pagina de autogestion. Si es la primera vez que ingresas tu usuario va a ser numero de lajago y tu contraseña tu DNI.
+            En que no te deje ingresar acercate por Secretaria de Asuntos Estudiantiles o Dpto. Alumnos para restablecer tu contraseña.
+            Una vez que ingreses entras a la seccion de inscripción al cursado y seleccionas las materias y comisiones en las que queres anotarte.
+            Si no te deja anotarte por ahi intenta nuevamente en los dias siguientes o llegate por Dpto. Alumnos para presentar una nota de Inscripcion fuera de termino/Ampliación de cupos."""
+            
+            embed = discord.Embed(
+        title=self.values[0],
+        description=respuesta,
+        color=discord.Color.green()
+    )
 
-        elif self.values[0] == "¿Qué materias hay en cada mesa?":
-            respuesta = "Las materias disponibles se publican en cada turno de examen según la carrera."
+    embed.set_footer(text="Facultad Regional Tucumán")
 
-        elif self.values[0] == "¿Cómo recupero un parcial?":
-            respuesta = "Podés rendir recuperatorio en las fechas establecidas por la cátedra."
+    await interaction.response.edit_message(
+        embed=embed,
+        view=BotonSysacad()
+    )
+    return
+    
+# ****************************** EXAMENES FINALES ******************************
+        elif self.values[0] == "¿Qué materias hay en cada mesa de examen final?":
+            respuesta = "Podes revisar que materias hay en cada mesa en . . ."
 
+        elif self.values[0] == "¿Cuales son las fechas de examenes finales?":
+            respuesta = "Podes revisar cuando son las mesas de examenes en el calendario academico usando el comando **,calendario26**"
+
+        elif self.values[0] == "¿Cómo me anoto a un examen final?":
+            respuesta = """Debés ingresar al sistema de autogestion de la facultad “Sysacad”. 
+            Podes hacerlo tocando el boton de abajo que te llevara directo a la pagina de autogestion. Si es la primera vez que ingresas tu usuario va a ser numero de lajago y tu contraseña tu DNI.
+            En que no te deje ingresar acercate por Secretaria de Asuntos Estudiantiles o Dpto. Alumnos para restablecer tu contraseña.
+            Una vez que ingreses entras a la seccion de inscripción a examenes y seleccionas las materias en las que queres anotarte.
+            Cualquier inconveniente podes llegar a consultar en Dpto. Legajos y Actas"""
+
+    embed = discord.Embed(
+        title=self.values[0],
+        description=respuesta,
+        color=discord.Color.green()
+    )
+
+    embed.set_footer(text="Facultad Regional Tucumán")
+
+    await interaction.response.edit_message(
+        embed=embed,
+        view=BotonSysacad()
+    )
+    return
+
+        elif self.values[0] == "¿Puedo rendir un examen final sin tener libreta universitaria?":
+            respuesta = ""
+
+# ********************************** CURSADO *********************************
         elif self.values[0] == "¿Cómo son los horarios?":
             respuesta = "Se publican al inicio de cada cuatrimestre."
 
         elif self.values[0] == "¿Hay asistencia obligatoria?":
-            respuesta = "Sí, generalmente se exige un porcentaje mínimo de asistencia."
+            respuesta = "Sí, generalmente se exige un porcentaje de mínimo 75% de asistencia."
 
+# ****************************** PRESENTACION DE NOTAS *********************************
         elif self.values[0] == "¿Qué es la 5.3.1 y cómo pedir la excepción?":
             respuesta = """**📌 Requisitos:**
 Para pedir la excepción al art. 5.3.1 debés estar cursando las últimas materias de la carrera y no tener superposición entre horarios.
@@ -142,12 +177,9 @@ Se recomienda hacerlo lo antes posible."""
 
         elif self.values[0] == "¿Cómo cambiarme de comisión?":
             respuesta = """Para cambiarte de comisión deben existir motivos de peso (ej: trabajo u otras actividades comprobables).
-
 Debés confeccionar una nota indicando el motivo y adjuntar documentación.
-
 Luego presentás la nota en Mesa de Entrada y esperás que Secretaría Académica evalúe el pedido.
-
-No siempre está garantizado el cambio."""
+**No siempre está garantizado el cambio.**"""
 
         embed = discord.Embed(
             title=self.values[0],
@@ -179,7 +211,15 @@ class VolverButton(discord.ui.Button):
             embed=embed,
             view=PreguntasView()
         )
+# ******* BOTON SYSACAD *******
+class BotonSysacad(discord.ui.View):
+    def __init__(self):
+        super().__init__()
 
+        self.add_item(discord.ui.Button(
+            label="🌐 Ir a Sysacad",
+            url="https://sysacad.frt.utn.edu.ar/"
+        ))
 
 # ===== VIEW DE PREGUNTAS =====
 class PreguntaDetalleView(discord.ui.View):
@@ -189,12 +229,12 @@ class PreguntaDetalleView(discord.ui.View):
         self.add_item(VolverButton())
 
 
-# ===== SELECT DE CATEGORÍAS =====
+# **************** CATEGORIAS ******************
 class PreguntasSelect(discord.ui.Select):
     def __init__(self):
         options = [
             discord.SelectOption(label="📚 Inscripciones"),
-            discord.SelectOption(label="📝 Exámenes"),
+            discord.SelectOption(label="📝 Exámenes finales"),
             discord.SelectOption(label="🏫 Cursado"),
             discord.SelectOption(label="📄 Presentación de notas"),
         ]
@@ -213,7 +253,7 @@ class PreguntasSelect(discord.ui.Select):
             categoria = "inscripciones"
 
         elif "Exámenes" in self.values[0]:
-            categoria = "examenes"
+            categoria = "examenes finales"
 
         elif "Cursado" in self.values[0]:
             categoria = "cursado"
