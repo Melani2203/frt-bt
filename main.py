@@ -297,7 +297,7 @@ async def preguntas(ctx):
 # **************************************
 
 # =========================
-# 📚 MATERIAS POR AÑO
+# 📚 COMANDO MATERIAS (EMBED CON REACCIONES)
 # =========================
 @bot.command()
 async def materias(ctx):
@@ -317,11 +317,15 @@ async def materias(ctx):
         await msg.add_reaction(emoji)
 
 # =========================
-# DETECTAR REACCIONES
+# 🎯 DETECTAR REACCIONES
 # =========================
 @bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
+        return
+
+    # 🔒 Solo reaccionar a mensajes del bot
+    if reaction.message.author != bot.user:
         return
 
     emoji = str(reaction.emoji)
@@ -343,7 +347,7 @@ async def on_reaction_add(reaction, user):
         )
 
 # =========================
-# BOTÓN INTERMEDIO (CLAVE)
+# 🔘 BOTÓN INTERMEDIO
 # =========================
 class AñoButtonView(discord.ui.View):
     def __init__(self, año, user_id):
@@ -354,7 +358,6 @@ class AñoButtonView(discord.ui.View):
     @discord.ui.button(label="Abrir materias", style=discord.ButtonStyle.primary)
     async def abrir(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        # 🔒 Solo el usuario que reaccionó puede usarlo
         if interaction.user.id != self.user_id:
             await interaction.response.send_message(
                 "❌ Este botón no es para vos.",
@@ -362,10 +365,8 @@ class AñoButtonView(discord.ui.View):
             )
             return
 
-        descripcion = obtener_materias(self.año)
-
         embed = discord.Embed(
-            description=descripcion,
+            description=obtener_materias(self.año),
             color=discord.Color.blue()
         )
 
@@ -376,7 +377,7 @@ class AñoButtonView(discord.ui.View):
         )
 
 # =========================
-# MATERIAS TEXTO
+# 📄 TEXTO DE MATERIAS
 # =========================
 def obtener_materias(año):
     if año == "1":
@@ -431,7 +432,7 @@ def obtener_materias(año):
 🧾╏proyecto final"""
 
 # =========================
-# BOTONES DE MATERIAS (BASE)
+# 🎛️ BOTONES DE MATERIAS
 # =========================
 class MateriasView(discord.ui.View):
     def __init__(self, año):
@@ -446,8 +447,6 @@ class MateriasView(discord.ui.View):
         )
 
 # =========================
-
-
-
-# Ejecutar
+# RUN
+# =========================
 bot.run(TOKEN)
