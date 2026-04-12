@@ -299,133 +299,151 @@ async def preguntas(ctx):
 # =========================
 # 📚 MATERIAS POR AÑO
 # =========================
-materias = {
-    "1": [
-        "Análisis Matemático I",
-        "Física I",
-        "Álgebra y Geometría Analítica",
-        "Lógica y Estructuras Discretas",
-        "Sistemas y Procesos de Negocios",
-        "Algoritmos y Estructuras de Datos",
-        "Arquitectura de Computadoras",
-        "Ingeniería y Sociedad"
-    ],
-    "2": [
-        "Análisis Matemático II",
-        "Física II",
-        "Inglés I",
-        "Sintaxis y Semántica de los Lenguajes",
-        "Paradigmas de Programación",
-        "Sistemas Operativos",
-        "Análisis de Sistemas de Información"
-    ],
-    "3": [
-        "Inglés II",
-        "Probabilidad y Estadística",
-        "Economía",
-        "Bases de Datos",
-        "Desarrollo de Software",
-        "Comunicación de Datos",
-        "Análisis Numérico",
-        "Diseño de Sistemas de Información"
-    ],
-    "4": [
-        "Legislación",
-        "Ingeniería y Calidad de Software",
-        "Redes de Datos",
-        "Investigación Operativa",
-        "Simulación",
-        "Tecnologías para la Automatización",
-        "Administración de Sistemas de Información"
-    ],
-    "5": [
-        "Inteligencia Artificial",
-        "Ciencia de Datos",
-        "Sistemas de Gestión",
-        "Gestión Gerencial",
-        "Seguridad en los Sistemas de Información",
-        "Proyecto Final"
-    ]
-}
-
-# =========================
-# 🎛️ BOTONES
-# =========================
-class AñosView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-
-    async def enviar_materias(self, interaction, año):
-        lista = materias[año]
-        texto = "\n".join([f"• {m}" for m in lista])
-
-        embed = discord.Embed(
-            title=f"📚 Materias de {año}° año",
-            description=texto,
-            color=discord.Color.blue()
-        )
-
-        # 👇 ESTE ES EL TRUCO IMPORTANTE
-        # ephemeral=True = SOLO lo ve quien tocó el botón
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    @discord.ui.button(label="1° Año", style=discord.ButtonStyle.primary)
-    async def año1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "1")
-
-    @discord.ui.button(label="2° Año", style=discord.ButtonStyle.primary)
-    async def año2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "2")
-
-    @discord.ui.button(label="3° Año", style=discord.ButtonStyle.primary)
-    async def año3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "3")
-
-    @discord.ui.button(label="4° Año", style=discord.ButtonStyle.secondary)
-    async def año4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "4")
-
-    @discord.ui.button(label="5° Año", style=discord.ButtonStyle.success)
-    async def año5(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "5")
-
-
-# =========================
-# 📩 COMANDO PARA ENVIAR EL EMBED FIJO
-# =========================
 @bot.command()
 async def materias(ctx):
     embed = discord.Embed(
-        description="""**Selecciona en que años estas cursando**
-        :one: 1er Año
-        :two: 2do Año
-        :three: 3er Año
-        :four: 4to Año
-        :five: 5to Año""",
+        description="""**Selecciona en que años estas cursando** 
+1️⃣╏1er Año  
+2️⃣╏2do Año  
+3️⃣╏3er Año  
+4️⃣╏4to Año  
+5️⃣╏5to Año""",
         color=discord.Color.green()
     )
 
-    await ctx.send(embed=embed, view=AñosView())
+    msg = await ctx.send(embed=embed)
 
+    for emoji in ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]:
+        await msg.add_reaction(emoji)
 
 # =========================
-# 📌 OPCIONAL: ENVIAR AUTOMÁTICO A UN CANAL
+# DETECTAR REACCIONES
 # =========================
 @bot.event
-async def on_ready():
-    print(f"Bot conectado como {bot.user}")
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
 
-    canal_id = 123456789012345678  # 🔴 REEMPLAZAR
-    canal = bot.get_channel(canal_id)
+    emoji = str(reaction.emoji)
 
-    if canal:
-        embed = discord.Embed(
-            title="🎓 Seleccioná tu año",
-            description="Hacé clic en un botón para ver las materias.",
-            color=discord.Color.green()
+    mapa = {
+        "1️⃣": "1",
+        "2️⃣": "2",
+        "3️⃣": "3",
+        "4️⃣": "4",
+        "5️⃣": "5"
+    }
+
+    if emoji in mapa:
+        año = mapa[emoji]
+
+        await reaction.message.channel.send(
+            f"{user.mention} seleccionaste {emoji}",
+            view=AñoButtonView(año, user.id)
         )
 
-        await canal.send(embed=embed, view=AñosView())
+# =========================
+# BOTÓN INTERMEDIO (CLAVE)
+# =========================
+class AñoButtonView(discord.ui.View):
+    def __init__(self, año, user_id):
+        super().__init__(timeout=30)
+        self.año = año
+        self.user_id = user_id
+
+    @discord.ui.button(label="Abrir materias", style=discord.ButtonStyle.primary)
+    async def abrir(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        # 🔒 Solo el usuario que reaccionó puede usarlo
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "❌ Este botón no es para vos.",
+                ephemeral=True
+            )
+            return
+
+        descripcion = obtener_materias(self.año)
+
+        embed = discord.Embed(
+            description=descripcion,
+            color=discord.Color.blue()
+        )
+
+        await interaction.response.send_message(
+            embed=embed,
+            view=MateriasView(self.año),
+            ephemeral=True
+        )
+
+# =========================
+# MATERIAS TEXTO
+# =========================
+def obtener_materias(año):
+    if año == "1":
+        return """**1er año -Selecciona que materias estas cursando:** 
+🔢╏análisis matemático ❘.
+⚡╏física ❘.
+📐╏álgebra y geometría analítica.
+🧠╏lógica y estructuras discretas.
+⚙️╏sistemas y procesos de negocios.
+💻╏algoritmos y estructuras de datos.
+💾╏arquitectura de computadoras.
+🌍╏ingeniería y sociedad."""
+
+    elif año == "2":
+        return """**2do año - Selecciona que materias estas cursando:**
+🔢╏análisis matemático ❘❘
+⚡╏física ❘❘
+📒╏inglés ❘
+📝╏sintaxis y semántica de los lenguajes
+👨‍💻╏paradigmas de programación
+💿╏sistemas operativos
+🧠╏análisis de sistemas de información"""
+
+    elif año == "3":
+        return """**3er año - Selecciona que materias estas cursando:** 
+📒╏inglés ❘❘
+🎲╏probabilidad y estadística
+💰╏economía
+🗄️╏bases de datos
+💻╏desarrollo de software
+🌐╏comunicación de datos
+📊╏análisis numérico
+🖊️╏diseño de sistemas de información"""
+
+    elif año == "4":
+        return """**4to año - Selecciona que materias estas cursando:**
+⚖️╏legislación
+⚙️╏ingeniería y calidad de software
+🌐╏redes de datos
+🔎╏investigación operativa
+🎮╏simulación
+🤖╏tecnologías para la automatización
+🖥️╏administración de sistemas de información"""
+
+    elif año == "5":
+        return """**5to año - Selecciona que materias estas cursando:**
+🧠╏inteligencia artificial
+📊╏ciencia de datos
+🗃️╏sistemas de gestión
+📈╏gestión gerencial
+🛡️╏seguridad en los sistemas de información
+🧾╏proyecto final"""
+
+# =========================
+# BOTONES DE MATERIAS (BASE)
+# =========================
+class MateriasView(discord.ui.View):
+    def __init__(self, año):
+        super().__init__(timeout=None)
+        self.año = año
+
+    @discord.ui.button(label="Seleccionar materias", style=discord.ButtonStyle.success)
+    async def seleccionar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "✅ Después acá podés asignar roles por materia.",
+            ephemeral=True
+        )
 
 # =========================
 
