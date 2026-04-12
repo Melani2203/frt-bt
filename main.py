@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import os
 from dotenv import load_dotenv
 
@@ -20,6 +21,11 @@ bot = commands.Bot(command_prefix=",", intents=intents)
 @bot.event
 async def on_ready():
     print(f"Conectado como {bot.user}")
+    try:
+        synced = await bot.tree.sync()
+        print(f"Slash commands sincronizados: {len(synced)}")
+    except Exception as e:
+        print(e)
 
 # ************************************** Comando ,calendario26 ************************************
 class BotonCalendario(discord.ui.View):
@@ -31,8 +37,10 @@ class BotonCalendario(discord.ui.View):
             url="https://raw.githubusercontent.com/Melani2203/archivos-bot/main/CA2026.pdf"
         ))
 
-@bot.command()
-async def calendario26(ctx):
+
+@bot.tree.command(name="calendario26", description="Ver calendario académico 2026")
+async def calendario26(interaction: discord.Interaction):
+
     embed = discord.Embed(
         description="# 📅 Calendario Académico\n\n"
                     "Podés descargar el calendario usando el botón de abajo 👇\n\n"
@@ -40,10 +48,12 @@ async def calendario26(ctx):
                     "🔗 https://frt.utn.edu.ar/ \n"
                     "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
         color=discord.Color.orange()
-
     )
 
-    await ctx.send(embed=embed, view=BotonCalendario())
+    await interaction.response.send_message(
+        embed=embed,
+        view=BotonCalendario()
+    )
 
 # ******* BOTON SYSACAD *******
 class BotonSysacad(discord.ui.View):
