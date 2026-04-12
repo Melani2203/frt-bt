@@ -298,7 +298,7 @@ async def preguntas(ctx):
 # **************************************
 
 # =========================
-# 📚 COMANDO MATERIAS
+# 📚 COMANDO MATERIAS 
 # =========================
 @bot.command()
 async def materias(ctx):
@@ -312,72 +312,53 @@ async def materias(ctx):
         color=discord.Color.green()
     )
 
-    msg = await ctx.send(embed=embed)
+    await ctx.send(embed=embed, view=AñosView())
 
-    for emoji in ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]:
-        await msg.add_reaction(emoji)
 
 # =========================
-# 🎯 REACCIONES
+# 🎛️ BOTONES DE AÑOS
 # =========================
-@bot.event
-async def on_reaction_add(reaction, user):
-    if user.bot:
-        return
+class AñosView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
 
-    if reaction.message.author != bot.user:
-        return
-
-    emoji = str(reaction.emoji)
-
-    mapa = {
-        "1️⃣": "1",
-        "2️⃣": "2",
-        "3️⃣": "3",
-        "4️⃣": "4",
-        "5️⃣": "5"
-    }
-
-    if emoji in mapa:
-        año = mapa[emoji]
-
-        await reaction.message.channel.send(
-            f"{user.mention} seleccionaste {emoji}",
-            view=AñoButtonView(año, user.id)
-        )
-
-# =========================
-# 🔘 BOTÓN INTERMEDIO
-# =========================
-class AñoButtonView(discord.ui.View):
-    def __init__(self, año, user_id):
-        super().__init__(timeout=30)
-        self.año = año
-        self.user_id = user_id
-
-    @discord.ui.button(label="Abrir materias", style=discord.ButtonStyle.primary)
-    async def abrir(self, interaction: discord.Interaction, button: discord.ui.Button):
-
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message(
-                "❌ Este botón no es para vos.",
-                ephemeral=True
-            )
-            return
+    async def enviar_materias(self, interaction, año):
+        descripcion = obtener_materias(año)
 
         embed = discord.Embed(
-            description=obtener_materias(self.año),
+            description=descripcion,
             color=discord.Color.blue()
         )
 
         await interaction.response.send_message(
             embed=embed,
-            view=MateriasView(self.año),
+            view=MateriasView(año),
             ephemeral=True
         )
 
+    @discord.ui.button(label="1️⃣ 1er Año", style=discord.ButtonStyle.primary)
+    async def año1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "1")
+
+    @discord.ui.button(label="2️⃣ 2do Año", style=discord.ButtonStyle.primary)
+    async def año2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "2")
+
+    @discord.ui.button(label="3️⃣ 3er Año", style=discord.ButtonStyle.primary)
+    async def año3(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "3")
+
+    @discord.ui.button(label="4️⃣ 4to Año", style=discord.ButtonStyle.secondary)
+    async def año4(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "4")
+
+    @discord.ui.button(label="5️⃣ 5to Año", style=discord.ButtonStyle.success)
+    async def año5(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "5")
+
+
 # =========================
-# 📄 TEXTO (NO TOCADO)
+# 📝 TEXTO MATERIAS 
 # =========================
 def obtener_materias(año):
     if año == "1":
@@ -431,89 +412,21 @@ def obtener_materias(año):
 🛡️╏seguridad en los sistemas de información
 🧾╏proyecto final"""
 
-# =========================
-# 🧠 ROLES DE MATERIAS (TUS IDS)
-# =========================
-materias_roles = {
-    "1": [
-        ("🔢 análisis matemático ❘.", 1425686379559653386),
-        ("⚡ física ❘.", 1425686383216955413),
-        ("📐 álgebra y geometría analítica.", 1425686381602279545),
-        ("🧠 lógica y estructuras discretas.", 1425686385771417641),
-        ("⚙️ sistemas y procesos de negocios.", 1425686388401242225),
-        ("💻 algoritmos y estructuras de datos.", 1425686386463473807),
-        ("💾 arquitectura de computadoras.", 1425686387243614278),
-        ("🌍 ingeniería y sociedad.", 1425686384860987433),
-    ],
-    "2": [
-        ("🔢 análisis matemático ❘❘", 1425686389504344145),
-        ("⚡ física ❘❘", 1425686390024437811),
-        ("📒 inglés ❘", 1425686390615838820),
-        ("📝 sintaxis y semántica de los lenguajes", 1425686391135670333),
-        ("👨‍💻 paradigmas de programación", 1425686391613816923),
-        ("💿 sistemas operativos", 1425686391970463744),
-        ("🧠 análisis de sistemas de información", 1425686392503144610),
-    ],
-    "3": [
-        ("📒 inglés ❘❘", 1425686813338501120),
-        ("🎲 probabilidad y estadística", 1425686395191693483),
-        ("💰 economía", 1425686396676472904),
-        ("🗄️ bases de datos", 1425686397183987712),
-        ("💻 desarrollo de software", 1425686397724917770),
-        ("🌐 comunicación de datos", 1425686811719762071),
-        ("📊 análisis numérico", 1425686812160036864),
-        ("🖊️ diseño de sistemas de información", 1425686812709617736),
-    ],
-    "4": [
-        ("⚖️ legislación", 1425686813871177799),
-        ("⚙️ ingeniería y calidad de software", 1425688174801195028),
-        ("🌐 redes de datos", 1425688175510159482),
-        ("🔎 investigación operativa", 1425688176168800387),
-        ("🎮 simulación", 1425688176818786304),
-        ("🤖 tecnologías para la automatización", 1425688178681057300),
-        ("🖥️ administración de sistemas de información", 1425688181830975548),
-    ],
-    "5": [
-        ("🧠 inteligencia artificial", 1425688182732624074),
-        ("📊 ciencia de datos", 1425688184045699123),
-        ("🗃️ sistemas de gestión", 1425688447670157473),
-        ("📈 gestión gerencial", 1425688449469382728),
-        ("🛡️ seguridad en los sistemas de información", 1425688451960930429),
-        ("🧾 proyecto final", 1425688453949034579),
-    ]
-}
 
 # =========================
-# 🎛️ BOTONES DE MATERIAS
+# 🎛️ BOTONES DE MATERIAS CON ROLES
 # =========================
 class MateriasView(discord.ui.View):
     def __init__(self, año):
         super().__init__(timeout=None)
+        self.año = año
 
-        for nombre, rol_id in materias_roles[año]:
-            self.add_item(MateriaButton(nombre, rol_id))
-
-class MateriaButton(discord.ui.Button):
-    def __init__(self, nombre, rol_id):
-        super().__init__(label=nombre, style=discord.ButtonStyle.secondary)
-        self.rol_id = rol_id
-
-    async def callback(self, interaction: discord.Interaction):
-        rol = interaction.guild.get_role(self.rol_id)
-
-        if rol in interaction.user.roles:
-            await interaction.user.remove_roles(rol)
-            await interaction.response.send_message(
-                f"❌ Te quitaste {rol.name}",
-                ephemeral=True
-            )
-        else:
-            await interaction.user.add_roles(rol)
-            await interaction.response.send_message(
-                f"✅ Te agregaste {rol.name}",
-                ephemeral=True
-            )
-
+    @discord.ui.button(label="Asignar materias", style=discord.ButtonStyle.success)
+    async def asignar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "🔧 Acá luego vamos a asignar roles automáticamente.",
+            ephemeral=True
+        )
 # =========================
 # RUN
 # =========================
