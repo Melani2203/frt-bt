@@ -298,7 +298,7 @@ async def preguntas(ctx):
 # **************************************
 
 # =========================
-# 📚 COMANDO MATERIAS (EMBED CON REACCIONES)
+# 📚 COMANDO MATERIAS
 # =========================
 @bot.command()
 async def materias(ctx):
@@ -318,14 +318,13 @@ async def materias(ctx):
         await msg.add_reaction(emoji)
 
 # =========================
-# 🎯 DETECTAR REACCIONES
+# 🎯 REACCIONES
 # =========================
 @bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
 
-    # 🔒 Solo reaccionar a mensajes del bot
     if reaction.message.author != bot.user:
         return
 
@@ -378,7 +377,7 @@ class AñoButtonView(discord.ui.View):
         )
 
 # =========================
-# 📄 TEXTO DE MATERIAS
+# 📄 TEXTO (NO TOCADO)
 # =========================
 def obtener_materias(año):
     if año == "1":
@@ -433,19 +432,87 @@ def obtener_materias(año):
 🧾╏proyecto final"""
 
 # =========================
+# 🧠 ROLES DE MATERIAS (TUS IDS)
+# =========================
+materias_roles = {
+    "1": [
+        ("🔢 análisis matemático ❘.", 1425686379559653386),
+        ("⚡ física ❘.", 1425686383216955413),
+        ("📐 álgebra y geometría analítica.", 1425686381602279545),
+        ("🧠 lógica y estructuras discretas.", 1425686385771417641),
+        ("⚙️ sistemas y procesos de negocios.", 1425686388401242225),
+        ("💻 algoritmos y estructuras de datos.", 1425686386463473807),
+        ("💾 arquitectura de computadoras.", 1425686387243614278),
+        ("🌍 ingeniería y sociedad.", 1425686384860987433),
+    ],
+    "2": [
+        ("🔢 análisis matemático ❘❘", 1425686389504344145),
+        ("⚡ física ❘❘", 1425686390024437811),
+        ("📒 inglés ❘", 1425686390615838820),
+        ("📝 sintaxis y semántica de los lenguajes", 1425686391135670333),
+        ("👨‍💻 paradigmas de programación", 1425686391613816923),
+        ("💿 sistemas operativos", 1425686391970463744),
+        ("🧠 análisis de sistemas de información", 1425686392503144610),
+    ],
+    "3": [
+        ("📒 inglés ❘❘", 1425686813338501120),
+        ("🎲 probabilidad y estadística", 1425686395191693483),
+        ("💰 economía", 1425686396676472904),
+        ("🗄️ bases de datos", 1425686397183987712),
+        ("💻 desarrollo de software", 1425686397724917770),
+        ("🌐 comunicación de datos", 1425686811719762071),
+        ("📊 análisis numérico", 1425686812160036864),
+        ("🖊️ diseño de sistemas de información", 1425686812709617736),
+    ],
+    "4": [
+        ("⚖️ legislación", 1425686813871177799),
+        ("⚙️ ingeniería y calidad de software", 1425688174801195028),
+        ("🌐 redes de datos", 1425688175510159482),
+        ("🔎 investigación operativa", 1425688176168800387),
+        ("🎮 simulación", 1425688176818786304),
+        ("🤖 tecnologías para la automatización", 1425688178681057300),
+        ("🖥️ administración de sistemas de información", 1425688181830975548),
+    ],
+    "5": [
+        ("🧠 inteligencia artificial", 1425688182732624074),
+        ("📊 ciencia de datos", 1425688184045699123),
+        ("🗃️ sistemas de gestión", 1425688447670157473),
+        ("📈 gestión gerencial", 1425688449469382728),
+        ("🛡️ seguridad en los sistemas de información", 1425688451960930429),
+        ("🧾 proyecto final", 1425688453949034579),
+    ]
+}
+
+# =========================
 # 🎛️ BOTONES DE MATERIAS
 # =========================
 class MateriasView(discord.ui.View):
     def __init__(self, año):
         super().__init__(timeout=None)
-        self.año = año
 
-    @discord.ui.button(label="Seleccionar materias", style=discord.ButtonStyle.success)
-    async def seleccionar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "✅ Después acá podés asignar roles por materia.",
-            ephemeral=True
-        )
+        for nombre, rol_id in materias_roles[año]:
+            self.add_item(MateriaButton(nombre, rol_id))
+
+class MateriaButton(discord.ui.Button):
+    def __init__(self, nombre, rol_id):
+        super().__init__(label=nombre, style=discord.ButtonStyle.secondary)
+        self.rol_id = rol_id
+
+    async def callback(self, interaction: discord.Interaction):
+        rol = interaction.guild.get_role(self.rol_id)
+
+        if rol in interaction.user.roles:
+            await interaction.user.remove_roles(rol)
+            await interaction.response.send_message(
+                f"❌ Te quitaste {rol.name}",
+                ephemeral=True
+            )
+        else:
+            await interaction.user.add_roles(rol)
+            await interaction.response.send_message(
+                f"✅ Te agregaste {rol.name}",
+                ephemeral=True
+            )
 
 # =========================
 # RUN
