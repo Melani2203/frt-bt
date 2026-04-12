@@ -11,6 +11,7 @@ print("TOKEN:", TOKEN)
 # Intents
 intents = discord.Intents.default()
 intents.message_content = True
+intents.reactions = True
 
 # Prefijo de comandos (,)
 bot = commands.Bot(command_prefix=",", intents=intents)
