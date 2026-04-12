@@ -296,5 +296,140 @@ async def preguntas(ctx):
 
 # **************************************
 
+# =========================
+# 📚 MATERIAS POR AÑO
+# =========================
+materias = {
+    "1": [
+        "Análisis Matemático I",
+        "Física I",
+        "Álgebra y Geometría Analítica",
+        "Lógica y Estructuras Discretas",
+        "Sistemas y Procesos de Negocios",
+        "Algoritmos y Estructuras de Datos",
+        "Arquitectura de Computadoras",
+        "Ingeniería y Sociedad"
+    ],
+    "2": [
+        "Análisis Matemático II",
+        "Física II",
+        "Inglés I",
+        "Sintaxis y Semántica de los Lenguajes",
+        "Paradigmas de Programación",
+        "Sistemas Operativos",
+        "Análisis de Sistemas de Información"
+    ],
+    "3": [
+        "Inglés II",
+        "Probabilidad y Estadística",
+        "Economía",
+        "Bases de Datos",
+        "Desarrollo de Software",
+        "Comunicación de Datos",
+        "Análisis Numérico",
+        "Diseño de Sistemas de Información"
+    ],
+    "4": [
+        "Legislación",
+        "Ingeniería y Calidad de Software",
+        "Redes de Datos",
+        "Investigación Operativa",
+        "Simulación",
+        "Tecnologías para la Automatización",
+        "Administración de Sistemas de Información"
+    ],
+    "5": [
+        "Inteligencia Artificial",
+        "Ciencia de Datos",
+        "Sistemas de Gestión",
+        "Gestión Gerencial",
+        "Seguridad en los Sistemas de Información",
+        "Proyecto Final"
+    ]
+}
+
+# =========================
+# 🎛️ BOTONES
+# =========================
+class AñosView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    async def enviar_materias(self, interaction, año):
+        lista = materias[año]
+        texto = "\n".join([f"• {m}" for m in lista])
+
+        embed = discord.Embed(
+            title=f"📚 Materias de {año}° año",
+            description=texto,
+            color=discord.Color.blue()
+        )
+
+        # 👇 ESTE ES EL TRUCO IMPORTANTE
+        # ephemeral=True = SOLO lo ve quien tocó el botón
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @discord.ui.button(label="1° Año", style=discord.ButtonStyle.primary)
+    async def año1(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "1")
+
+    @discord.ui.button(label="2° Año", style=discord.ButtonStyle.primary)
+    async def año2(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "2")
+
+    @discord.ui.button(label="3° Año", style=discord.ButtonStyle.primary)
+    async def año3(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "3")
+
+    @discord.ui.button(label="4° Año", style=discord.ButtonStyle.secondary)
+    async def año4(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "4")
+
+    @discord.ui.button(label="5° Año", style=discord.ButtonStyle.success)
+    async def año5(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.enviar_materias(interaction, "5")
+
+
+# =========================
+# 📩 COMANDO PARA ENVIAR EL EMBED FIJO
+# =========================
+@bot.command()
+async def materias(ctx):
+    embed = discord.Embed(
+        description="""**Selecciona en que años estas cursando**
+        :one: 1er Año
+        :two: 2do Año
+        :three: 3er Año
+        :four: 4to Año
+        :five: 5to Año""",
+        color=discord.Color.green()
+    )
+
+    await ctx.send(embed=embed, view=AñosView())
+
+
+# =========================
+# 📌 OPCIONAL: ENVIAR AUTOMÁTICO A UN CANAL
+# =========================
+@bot.event
+async def on_ready():
+    print(f"Bot conectado como {bot.user}")
+
+    canal_id = 123456789012345678  # 🔴 REEMPLAZAR
+    canal = bot.get_channel(canal_id)
+
+    if canal:
+        embed = discord.Embed(
+            title="🎓 Seleccioná tu año",
+            description="Hacé clic en un botón para ver las materias.",
+            color=discord.Color.green()
+        )
+
+        await canal.send(embed=embed, view=AñosView())
+
+# =========================
+
+
+
 # Ejecutar
 bot.run(TOKEN)
