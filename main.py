@@ -298,7 +298,18 @@ async def preguntas(ctx):
 # **************************************
 
 # =========================
-# 📚 COMANDO MATERIAS 
+# 📚 ROLES DE AÑO
+# =========================
+ROLES_AÑO = {
+    "1": 1425540896035835987,
+    "2": 1425541312626819072,
+    "3": 1425541364208107531,
+    "4": 1425541412262383657,
+    "5": 1425541438497755198,
+}
+
+# =========================
+# 📚 COMANDO PRINCIPAL
 # =========================
 @bot.command()
 async def materias(ctx):
@@ -322,43 +333,54 @@ class AñosView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    async def enviar_materias(self, interaction, año):
-        descripcion = obtener_materias(año)
+    async def manejar_año(self, interaction, año):
+        guild = interaction.guild
+        user = interaction.user
+        rol = guild.get_role(ROLES_AÑO[año])
+
+        # 🔁 TOGGLE (poner / quitar)
+        if rol in user.roles:
+            await user.remove_roles(rol)
+            mensaje = f"❌ Se te quitó el rol de {año}° año"
+        else:
+            await user.add_roles(rol)
+            mensaje = f"✅ Se te asignó el rol de {año}° año"
 
         embed = discord.Embed(
-            description=descripcion,
+            description=obtener_materias(año),
             color=discord.Color.blue()
         )
 
         await interaction.response.send_message(
+            content=mensaje,
             embed=embed,
             view=MateriasView(año),
             ephemeral=True
         )
 
-    @discord.ui.button(label="1️⃣ 1er Año", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="1️⃣ 1er Año", style=discord.ButtonStyle.secondary)
     async def año1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "1")
+        await self.manejar_año(interaction, "1")
 
-    @discord.ui.button(label="2️⃣ 2do Año", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="2️⃣ 2do Año", style=discord.ButtonStyle.secondary)
     async def año2(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "2")
+        await self.manejar_año(interaction, "2")
 
-    @discord.ui.button(label="3️⃣ 3er Año", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="3️⃣ 3er Año", style=discord.ButtonStyle.secondary)
     async def año3(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "3")
+        await self.manejar_año(interaction, "3")
 
     @discord.ui.button(label="4️⃣ 4to Año", style=discord.ButtonStyle.secondary)
     async def año4(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "4")
+        await self.manejar_año(interaction, "4")
 
-    @discord.ui.button(label="5️⃣ 5to Año", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="5️⃣ 5to Año", style=discord.ButtonStyle.secondary)
     async def año5(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.enviar_materias(interaction, "5")
+        await self.manejar_año(interaction, "5")
 
 
 # =========================
-# 📝 TEXTO MATERIAS 
+# 📝 TEXTO (SIN CAMBIOS)
 # =========================
 def obtener_materias(año):
     if año == "1":
@@ -414,19 +436,93 @@ def obtener_materias(año):
 
 
 # =========================
-# 🎛️ BOTONES DE MATERIAS CON ROLES
+# 🎯 ROLES DE MATERIAS
+# =========================
+ROLES = {
+    "1": [
+        ("🔢 Análisis I", 1425686379559653386),
+        ("⚡ Física I", 1425686383216955413),
+        ("📐 Álgebra", 1425686381602279545),
+        ("🧠 Lógica", 1425686385771417641),
+        ("⚙️ Sistemas", 1425686388401242225),
+        ("💻 Algoritmos", 1425686386463473807),
+        ("💾 Arquitectura", 1425686387243614278),
+        ("🌍 Ingeniería", 1425686384860987433),
+    ],
+    "2": [
+        ("🔢 Análisis II", 1425686389504344145),
+        ("⚡ Física II", 1425686390024437811),
+        ("📒 Inglés I", 1425686390615838820),
+        ("📝 Sintaxis", 1425686391135670333),
+        ("👨‍💻 Paradigmas", 1425686391613816923),
+        ("💿 SO", 1425686391970463744),
+        ("🧠 Análisis SI", 1425686392503144610),
+    ],
+    "3": [
+        ("📒 Inglés II", 1425686813338501120),
+        ("🎲 Probabilidad", 1425686395191693483),
+        ("💰 Economía", 1425686396676472904),
+        ("🗄️ BD", 1425686397183987712),
+        ("💻 Desarrollo", 1425686397724917770),
+        ("🌐 Comunicación", 1425686811719762071),
+        ("📊 Numérico", 1425686812160036864),
+        ("🖊️ Diseño", 1425686812709617736),
+    ],
+    "4": [
+        ("⚖️ Legislación", 1425686813871177799),
+        ("⚙️ Calidad", 1425688174801195028),
+        ("🌐 Redes", 1425688175510159482),
+        ("🔎 IO", 1425688176168800387),
+        ("🎮 Simulación", 1425688176818786304),
+        ("🤖 Automatización", 1425688178681057300),
+        ("🖥️ Administración", 1425688181830975548),
+    ],
+    "5": [
+        ("🧠 IA", 1425688182732624074),
+        ("📊 Ciencia Datos", 1425688184045699123),
+        ("🗃️ Gestión", 1425688447670157473),
+        ("📈 Gerencial", 1425688449469382728),
+        ("🛡️ Seguridad", 1425688451960930429),
+        ("🧾 Proyecto", 1425688453949034579),
+    ]
+}
+
+
+# =========================
+# 🎛️ BOTONES DE MATERIAS
 # =========================
 class MateriasView(discord.ui.View):
     def __init__(self, año):
         super().__init__(timeout=None)
-        self.año = año
 
-    @discord.ui.button(label="Asignar materias", style=discord.ButtonStyle.success)
-    async def asignar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "🔧 Acá luego vamos a asignar roles automáticamente.",
-            ephemeral=True
-        )
+        for nombre, role_id in ROLES[año]:
+            self.add_item(BotonMateria(nombre, role_id))
+
+
+# =========================
+# 🔘 BOTÓN INDIVIDUAL
+# =========================
+class BotonMateria(discord.ui.Button):
+    def __init__(self, label, role_id):
+        super().__init__(label=label, style=discord.ButtonStyle.secondary)
+        self.role_id = role_id
+
+    async def callback(self, interaction: discord.Interaction):
+        role = interaction.guild.get_role(self.role_id)
+
+        # 🔁 TOGGLE
+        if role in interaction.user.roles:
+            await interaction.user.remove_roles(role)
+            await interaction.response.send_message(
+                f"❌ Se te quitó el rol {role.name}",
+                ephemeral=True
+            )
+        else:
+            await interaction.user.add_roles(role)
+            await interaction.response.send_message(
+                f"✅ Se te asignó el rol {role.name}",
+                ephemeral=True
+            )
 # =========================
 # RUN
 # =========================
