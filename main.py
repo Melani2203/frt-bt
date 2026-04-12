@@ -334,29 +334,33 @@ class AñosView(discord.ui.View):
         super().__init__(timeout=None)
 
     async def manejar_año(self, interaction, año):
-        guild = interaction.guild
-        user = interaction.user
-        rol = guild.get_role(ROLES_AÑO[año])
+    guild = interaction.guild
+    user = interaction.user
+    rol = guild.get_role(ROLES_AÑO[año])
 
-        # 🔁 TOGGLE (poner / quitar)
-        if rol in user.roles:
-            await user.remove_roles(rol)
-            mensaje = f"❌ Se te quitó el rol de {año}° año"
-        else:
-            await user.add_roles(rol)
-            mensaje = f"✅ Se te asignó el rol de {año}° año"
-
-        embed = discord.Embed(
-            description=obtener_materias(año),
-            color=discord.Color.blue()
-        )
-
+    # 🔴 SI YA TIENE EL ROL
+    if rol in user.roles:
         await interaction.response.send_message(
-            content=mensaje,
-            embed=embed,
-            view=MateriasView(año),
+            content=f"ℹ️ Ya posees el rol de {año}° año",
+            view=ConfirmarAñoView(año, rol),
             ephemeral=True
         )
+        return
+
+    # 🟢 SI NO LO TIENE → LO AGREGA
+    await user.add_roles(rol)
+
+    embed = discord.Embed(
+        description=obtener_materias(año),
+        color=discord.Color.blue()
+    )
+
+    await interaction.response.send_message(
+        content=f"✅ Se te asignó el rol de {año}° año",
+        embed=embed,
+        view=MateriasView(año),
+        ephemeral=True
+    )
 
     @discord.ui.button(label="1️⃣ 1er Año", style=discord.ButtonStyle.secondary)
     async def año1(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -378,6 +382,41 @@ class AñosView(discord.ui.View):
     async def año5(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.manejar_año(interaction, "5")
 
+
+# =========================
+# VIEW AÑOS
+# =========================
+class ConfirmarAñoView(discord.ui.View):
+    def __init__(self, año, rol):
+        super().__init__(timeout=60)
+        self.año = año
+        self.rol = rol
+
+    # 👉 CONTINUAR A MATERIAS
+    @discord.ui.button(label="➡️ Continuar a materias", style=discord.ButtonStyle.secondary)
+    async def continuar(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        embed = discord.Embed(
+            description=obtener_materias(self.año),
+            color=discord.Color.blue()
+        )
+
+        await interaction.response.send_message(
+            embed=embed,
+            view=MateriasView(self.año),
+            ephemeral=True
+        )
+
+    # 👉 ELIMINAR ROL
+    @discord.ui.button(label="❌ Eliminar rol", style=discord.ButtonStyle.secondary)
+    async def eliminar(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        await interaction.user.remove_roles(self.rol)
+
+        await interaction.response.send_message(
+            f"❌ Se eliminó el rol de {self.año}° año",
+            ephemeral=True
+        )
 
 # =========================
 # 📝 TEXTO (SIN CAMBIOS)
