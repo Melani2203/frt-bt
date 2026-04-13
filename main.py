@@ -2,62 +2,65 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import os
+import google.generativeai as genai
 from dotenv import load_dotenv
-import google.generativeai as genai  
 
-# =========================
-# 🔑 CARGAR VARIABLES
-# =========================
+# 1. CARGA DE CONFIGURACIÓN
 load_dotenv()
-
 TOKEN = os.getenv("DISCORD_TOKEN")
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_KEY = os.getenv('GEMINI_API_KEY')
+GUILD_ID = 1361312541766058184 
 
-GUILD_ID = 1361312541766058184
+# 2. CONFIGURACIÓN IA Y BOT
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# =========================
-# ⚙️ CONFIG BOT
-# =========================
 intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
-
 bot = commands.Bot(command_prefix=",", intents=intents)
 
-# =========================
-# 🤖 CONFIG GEMINI
-# =========================
-if not GEMINI_KEY:
-    print("❌ ERROR: No cargaste GEMINI_API_KEY en el .env")
-else:
-    genai.configure(api_key=GEMINI_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-
-# =========================
-# 📄 CARGAR REGLAMENTO
-# =========================
+# 3. CARGA DEL REGLAMENTO
 def obtener_contenido_reglamento():
     try:
         ruta = "Reglamento-de-Estudios-Ord-1549.txt"
         with open(ruta, "r", encoding="utf-8") as archivo:
             return archivo.read()
     except FileNotFoundError:
-        print(f"❌ No se encontró {ruta}")
+        print(f"❌ Error: No se encontró {ruta}")
         return None
 
 REGLAMENTO_TEXTO = obtener_contenido_reglamento()
 
-# =========================
-# 🚀 READY
-# =========================
+# 4. EVENTO READY ÚNICO
 @bot.event
 async def on_ready():
     print(f"✅ Conectado como {bot.user}")
     try:
+        # Sincronización para tu servidor específico (más rápido que global)
         synced = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
-        print(f"🔁 Slash commands sincronizados: {len(synced)}")
+        print(f"🚀 Slash commands sincronizados: {len(synced)}")
     except Exception as e:
-        print(f"❌ Error sync: {e}")
+        print(f"❌ Error sincronizando: {e}")
+
+# 5. COMANDOS IA (,cr y /cr)
+@bot.tree.command(name="cr", description="Consulta el reglamento con IA", guild=discord.Object(id=GUILD_ID))
+async def cr_slash(interaction: discord.Interaction, pregunta: str):
+    if not REGLAMENTO_TEXTO:
+        await interaction.response.send_message("❌ Reglamento no cargado.", ephemeral=True)
+        return
+    await interaction.response.defer() # Evita el error de los 3 segundos de Discord
+    try:
+        response = model.generate_content(f"Reglamento: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}")
+        await interaction.followup.send(response.text)
+    except:
+        await interaction.followup.send("Error con la IA.")
+
+@bot.command(name="cr")
+async def cr_prefix(ctx, *, pregunta: str):
+    async with ctx.typing():
+        response = model.generate_content(f"Contexto: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}")
+        await ctx.send(response.text)
 
 # =========================
 # 📅 BOTÓN CALENDARIO
@@ -611,82 +614,6 @@ class BotonMateria(discord.ui.Button):
                 f"✅ Se te asignó el rol {role.name}",
                 ephemeral=True
             )
-# ============================================
-# COMANDO /cr
-# ============================================
-@bot.tree.command(
-    name="cr",
-    description="Consulta dudas sobre el reglamento",
-    guild=discord.Object(id=GUILD_ID)
-)
-@app_commands.describe(pregunta="Escribe tu duda")
-async def cr_slash(interaction: discord.Interaction, pregunta: str):
-
-    if not REGLAMENTO_TEXTO:
-        await interaction.response.send_message(
-            "❌ No se pudo cargar el reglamento.",
-            ephemeral=True
-        )
-        return
-
-    if not GEMINI_KEY:
-        await interaction.response.send_message(
-            "❌ Falta configurar la API de Gemini.",
-            ephemeral=True
-        )
-        return
-
-    await interaction.response.defer()
-
-    prompt = f"""
-Eres un asistente de la UTN FRT.
-Responde SOLO con información del reglamento.
-
-REGLAMENTO:
-{REGLAMENTO_TEXTO}
-
-PREGUNTA:
-{pregunta}
-"""
-
-    try:
-        response = model.generate_content(prompt)
-        texto = response.text[:2000]
-
-        await interaction.followup.send(texto)
-
-    except Exception as e:
-        print(e)
-        await interaction.followup.send("❌ Error con la IA.")
-
-
-
-@bot.command(name="cr")
-async def cr_prefix(ctx, *, pregunta: str):
-
-    if not REGLAMENTO_TEXTO:
-        await ctx.send("❌ No se pudo cargar el reglamento.")
-        return
-
-    if not GEMINI_KEY:
-        await ctx.send("❌ Falta configurar la API.")
-        return
-
-    async with ctx.typing():
-        try:
-            prompt = f"""
-Responde basado en este reglamento:
-
-{REGLAMENTO_TEXTO}
-
-Pregunta: {pregunta}
-"""
-            response = model.generate_content(prompt)
-            await ctx.send(response.text[:2000])
-
-        except Exception as e:
-            print(e)
-            await ctx.send("❌ Error con la IA.")
 
 @bot.event
 async def on_ready():
