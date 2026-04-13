@@ -58,7 +58,7 @@ async def calendario26(interaction: discord.Interaction):
     embed = discord.Embed(
         description="# 📅 Calendario Académico\n\n"
                     "Podés descargar el calendario usando el botón de abajo 👇\n\n"
-                    "También podés consultarlo en la página oficial de la facultad:\n"
+                    "También podés consultarlo en el canal <#1361312542244344022> o en la página oficial de la facultad:\n"
                     "🔗 https://frt.utn.edu.ar/ \n"
                     "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
         color=discord.Color.orange()
