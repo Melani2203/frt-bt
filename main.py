@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai  # ✅ FALTABA
+import google.generativeai as genai  
 
 # =========================
 # 🔑 CARGAR VARIABLES
@@ -612,9 +612,8 @@ class BotonMateria(discord.ui.Button):
                 ephemeral=True
             )
 # ============================================
-# 4. NUEVO COMANDO DE CONSULTA CON IA
+# COMANDO /cr
 # ============================================
-# Comando /cr
 @bot.tree.command(
     name="cr",
     description="Consulta dudas sobre el reglamento",
@@ -652,8 +651,7 @@ PREGUNTA:
 
     try:
         response = model.generate_content(prompt)
-
-        texto = response.text[:2000]  # evitar límite de Discord
+        texto = response.text[:2000]
 
         await interaction.followup.send(texto)
 
@@ -661,52 +659,39 @@ PREGUNTA:
         print(e)
         await interaction.followup.send("❌ Error con la IA.")
 
-# Comando ,cr
-@bot.tree.command(
-    name="cr",
-    description="Consulta dudas sobre el reglamento",
-    guild=discord.Object(id=GUILD_ID)
-)
-@app_commands.describe(pregunta="Escribe tu duda")
-async def cr_slash(interaction: discord.Interaction, pregunta: str):
+
+
+@bot.command(name="cr")
+async def cr_prefix(ctx, *, pregunta: str):
 
     if not REGLAMENTO_TEXTO:
-        await interaction.response.send_message(
-            "❌ No se pudo cargar el reglamento.",
-            ephemeral=True
-        )
+        await ctx.send("❌ No se pudo cargar el reglamento.")
         return
 
     if not GEMINI_KEY:
-        await interaction.response.send_message(
-            "❌ Falta configurar la API de Gemini.",
-            ephemeral=True
-        )
+        await ctx.send("❌ Falta configurar la API.")
         return
 
-    await interaction.response.defer()
+    async with ctx.typing():
+        try:
+            prompt = f"""
+Responde basado en este reglamento:
 
-    prompt = f"""
-Eres un asistente de la UTN FRT.
-Responde SOLO con información del reglamento.
-
-REGLAMENTO:
 {REGLAMENTO_TEXTO}
 
-PREGUNTA:
-{pregunta}
+Pregunta: {pregunta}
 """
+            response = model.generate_content(prompt)
+            await ctx.send(response.text[:2000])
 
-    try:
-        response = model.generate_content(prompt)
+        except Exception as e:
+            print(e)
+            await ctx.send("❌ Error con la IA.")
 
-        texto = response.text[:2000]  # evitar límite de Discord
-
-        await interaction.followup.send(texto)
-
-    except Exception as e:
-        print(e)
-        await interaction.followup.send("❌ Error con la IA.")
+@bot.event
+async def on_ready():
+    await bot.tree.clear_commands(guild=discord.Object(id=GUILD_ID))
+    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
 
 # =========================
 # RUN
