@@ -4,41 +4,55 @@ from discord import app_commands
 import os
 from dotenv import load_dotenv
 
-# Cargar token
+# =========================
+# 🔑 CARGAR TOKEN
+# =========================
+load_dotenv()
 TOKEN = os.environ.get("DISCORD_TOKEN")
 
-print("TOKEN:", TOKEN)
+# =========================
+# ⚙️ CONFIG
+# =========================
+GUILD_ID = 1361312541766058184
 
-# Intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.reactions = True
 
-# Prefijo de comandos (,)
 bot = commands.Bot(command_prefix=",", intents=intents)
 
-# Evento cuando el bot prende
+# =========================
+# 🚀 EVENTO READY
+# =========================
 @bot.event
 async def on_ready():
     print(f"Conectado como {bot.user}")
     try:
-        synced = await bot.tree.sync()
+        synced = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
         print(f"Slash commands sincronizados: {len(synced)}")
     except Exception as e:
         print(e)
 
-# ************************************** Comando ,calendario26 ************************************
+# =========================
+# 📅 BOTÓN CALENDARIO
+# =========================
 class BotonCalendario(discord.ui.View):
     def __init__(self):
-        super().__init__()
+        super().__init__(timeout=None)  # 👈 importante para que no expire
 
         self.add_item(discord.ui.Button(
             label="📥 Descargar calendario",
             url="https://raw.githubusercontent.com/Melani2203/archivos-bot/main/CA2026.pdf"
         ))
 
-
-@bot.tree.command(name="calendario26", description="Ver calendario académico 2026")
+# =========================
+# 📌 SLASH COMMAND
+# =========================
+@bot.tree.command(
+    name="calendario26",
+    description="Ver calendario académico 2026",
+    guild=discord.Object(id=GUILD_ID)
+)
 async def calendario26(interaction: discord.Interaction):
 
     embed = discord.Embed(
@@ -54,6 +68,7 @@ async def calendario26(interaction: discord.Interaction):
         embed=embed,
         view=BotonCalendario()
     )
+
 
 # ******* BOTON SYSACAD *******
 class BotonSysacad(discord.ui.View):
