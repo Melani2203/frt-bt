@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 # =========================
 load_dotenv()
 TOKEN = os.environ.get("DISCORD_TOKEN")
+GEMINI_KEY = os.getenv('GEMINI_API_KEY')
 
 # =========================
 # ⚙️ CONFIG
@@ -21,6 +22,10 @@ intents.reactions = True
 
 bot = commands.Bot(command_prefix=",", intents=intents)
 
+# Configuración de Google Gemini
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
+
 # =========================
 # 🚀 EVENTO READY
 # =========================
@@ -32,6 +37,34 @@ async def on_ready():
         print(f"Slash commands sincronizados: {len(synced)}")
     except Exception as e:
         print(e)
+
+# 2. FUNCIÓN PARA LEER EL REGLAMENTO
+def obtener_contenido_reglamento():
+    try:
+        # Usamos el nombre exacto que pediste
+        ruta = "Reglamento-de-Estudios-Ord-1549.txt"
+        with open(ruta, "r", encoding="utf-8") as archivo:
+            return archivo.read()
+    except FileNotFoundError:
+        print(f"Error: No se encontró el archivo {ruta}")
+        return None
+
+# Cargamos el texto en una variable global para no leer el disco en cada pregunta
+REGLAMENTO_TEXTO = obtener_contenido_reglamento()
+
+# 3. CONFIGURACIÓN DEL BOT
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix=',', intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'Bot conectado como {bot.user}')
+    try:
+        synced = await bot.tree.sync()
+        print(f"Sincronizados {len(synced)} comandos de barra.")
+    except Exception as e:
+        print(f"Error sincronizando comandos: {e}")
 
 # =========================
 # 📅 BOTÓN CALENDARIO
@@ -585,6 +618,48 @@ class BotonMateria(discord.ui.Button):
                 f"✅ Se te asignó el rol {role.name}",
                 ephemeral=True
             )
+# ============================================
+# 4. NUEVO COMANDO DE CONSULTA CON IA
+# ============================================
+@bot.tree.command(
+    name="cr",
+    description="Consulta dudas sobre el reglamento de estudios con la IA"
+)
+@app_commands.describe(pregunta="Escribe aquí tu duda sobre el reglamento")
+async def cr_slash(interaction: discord.Interaction, pregunta: str):
+    """Versión del comando para Slash Command (/)"""
+    
+    if not REGLAMENTO_TEXTO:
+        await interaction.response.send_message("❌ El reglamento no está cargado.", ephemeral=True)
+        return
+
+    # Indicamos que el bot está procesando (pensando)
+    await interaction.response.defer()
+
+    prompt = (
+        f"Eres el asistente virtual de la UTN FRT. Responde basándote en este reglamento:\n\n"
+        f"{REGLAMENTO_TEXTO}\n\nPregunta: {pregunta}"
+    )
+
+    try:
+        response = model.generate_content(prompt)
+        # Enviamos la respuesta procesada
+        await interaction.followup.send(response.text)
+    except Exception as e:
+        await interaction.followup.send("Hubo un error al conectar con la IA.")
+        print(f"Error en Gemini Slash: {e}")
+
+# MANTENER EL COMANDO DE PREFIJO (OPCIONAL)
+@bot.command(name="cr")
+async def cr_prefix(ctx, *, pregunta: str):
+    """Mantiene la funcionalidad de escribir ',cr'"""
+    # Aquí puedes llamar a una función interna que procese la lógica de Gemini
+    # para no repetir código, o simplemente copiar la lógica anterior.
+    async with ctx.typing():
+        prompt = f"Contexto: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}"
+        response = model.generate_content(prompt)
+        await ctx.send(response.text)
+
 # =========================
 # RUN
 # =========================
