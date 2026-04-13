@@ -5,63 +5,115 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# 1. CARGA DE CONFIGURACIÓN
+# =========================
+# 🔑 CONFIG
+# =========================
 load_dotenv()
+
 TOKEN = os.getenv("DISCORD_TOKEN")
-GEMINI_KEY = os.getenv('GEMINI_API_KEY')
-GUILD_ID = 1361312541766058184 
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+GUILD_ID = 1361312541766058184
 
-# 2. CONFIGURACIÓN IA Y BOT
+if not TOKEN:
+    raise ValueError("❌ DISCORD_TOKEN no está configurado")
+
+if not GEMINI_KEY:
+    raise ValueError("❌ GEMINI_API_KEY no está configurado")
+
+# =========================
+# 🤖 IA
+# =========================
 genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel("gemini-1.5-flash")
 
+# =========================
+# ⚙️ BOT
+# =========================
 intents = discord.Intents.default()
 intents.message_content = True
-intents.reactions = True
+
 bot = commands.Bot(command_prefix=",", intents=intents)
 
-# 3. CARGA DEL REGLAMENTO
+# =========================
+# 📄 REGLAMENTO
+# =========================
 def obtener_contenido_reglamento():
     try:
-        ruta = "Reglamento-de-Estudios-Ord-1549.txt"
-        with open(ruta, "r", encoding="utf-8") as archivo:
-            return archivo.read()
-    except FileNotFoundError:
-        print(f"❌ Error: No se encontró {ruta}")
+        with open("Reglamento-de-Estudios-Ord-1549.txt", "r", encoding="utf-8") as f:
+            return f.read()
+    except:
         return None
 
 REGLAMENTO_TEXTO = obtener_contenido_reglamento()
 
-# 4. EVENTO READY ÚNICO
+# =========================
+# 🚀 READY (UNO SOLO)
+# =========================
 @bot.event
 async def on_ready():
-    print(f"✅ Conectado como {bot.user}")
+    print(f"✅ Bot conectado como {bot.user}")
+
     try:
-        # Sincronización para tu servidor específico (más rápido que global)
-        synced = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
-        print(f"🚀 Slash commands sincronizados: {len(synced)}")
+        guild = discord.Object(id=GUILD_ID)
+
+        # 🔥 limpia comandos duplicados
+        bot.tree.clear_commands(guild=guild)
+
+        synced = await bot.tree.sync(guild=guild)
+        print(f"🚀 Slash sync: {len(synced)}")
     except Exception as e:
-        print(f"❌ Error sincronizando: {e}")
+        print(f"❌ Error sync: {e}")
 
-# 5. COMANDOS IA (,cr y /cr)
-@bot.tree.command(name="cr", description="Consulta el reglamento con IA", guild=discord.Object(id=GUILD_ID))
+# =========================
+# 🤖 COMANDO IA (/cr)
+# =========================
+@bot.tree.command(
+    name="cr",
+    description="Consultar reglamento con IA",
+    guild=discord.Object(id=GUILD_ID)
+)
+@app_commands.describe(pregunta="Escribe tu duda")
 async def cr_slash(interaction: discord.Interaction, pregunta: str):
-    if not REGLAMENTO_TEXTO:
-        await interaction.response.send_message("❌ Reglamento no cargado.", ephemeral=True)
-        return
-    await interaction.response.defer() # Evita el error de los 3 segundos de Discord
-    try:
-        response = model.generate_content(f"Reglamento: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}")
-        await interaction.followup.send(response.text)
-    except:
-        await interaction.followup.send("Error con la IA.")
 
+    if not REGLAMENTO_TEXTO:
+        await interaction.response.send_message("❌ Reglamento no cargado", ephemeral=True)
+        return
+
+    await interaction.response.defer()
+
+    try:
+        prompt = f"""
+Responde SOLO con este reglamento:
+
+{REGLAMENTO_TEXTO}
+
+Pregunta: {pregunta}
+"""
+
+        response = model.generate_content(prompt)
+        texto = response.text[:2000]
+
+        await interaction.followup.send(texto)
+
+    except Exception as e:
+        print(e)
+        await interaction.followup.send("❌ Error con la IA")
+
+# =========================
+# 💬 COMANDO PREFIJO ,cr
+# =========================
 @bot.command(name="cr")
 async def cr_prefix(ctx, *, pregunta: str):
-    async with ctx.typing():
-        response = model.generate_content(f"Contexto: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}")
-        await ctx.send(response.text)
 
+    if not REGLAMENTO_TEXTO:
+        await ctx.send("❌ Reglamento no cargado")
+        return
+
+    async with ctx.typing():
+        response = model.generate_content(
+            f"Reglamento: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}"
+        )
+        await ctx.send(response.text[:2000])
 # =========================
 # 📅 BOTÓN CALENDARIO
 # =========================
