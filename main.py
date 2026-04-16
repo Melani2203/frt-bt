@@ -4,6 +4,7 @@ from discord import app_commands
 import os
 from dotenv import load_dotenv
 from google import genai
+from discord.ext.commands import cooldown, BucketType
 
 # =========================
 # 🔑 CONFIG
@@ -45,13 +46,13 @@ def obtener_contenido_reglamento():
         with open("Reglamento-de-Estudios-Ord-1549.txt", "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
-        print("Error cargando reglamento:", e)
+        print("❌ Error cargando reglamento:", e)
         return None
 
 REGLAMENTO_TEXTO = obtener_contenido_reglamento()
 
 # =========================
-# 🚀 READY
+# 🚀 READY (CORREGIDO)
 # =========================
 @bot.event
 async def on_ready():
@@ -59,9 +60,13 @@ async def on_ready():
 
     try:
         guild = discord.Object(id=GUILD_ID)
+
+        # 🔥 evitar duplicados de slash commands
+        bot.tree.clear_commands(guild=guild)
+
         synced = await bot.tree.sync(guild=guild)
-        
-        print(f"🚀 Slash commands sincronizados en el servidor: {len(synced)}")
+        print(f"🚀 Slash commands sincronizados: {len(synced)}")
+
     except Exception as e:
         print(f"❌ Error durante la sincronización: {e}")
 
@@ -77,6 +82,26 @@ def crear_embed_calendario():
                     "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
         color=discord.Color.orange()
     )
+    
+# =========================
+# 🔍 FILTRO REGLAMENTO
+# =========================
+def buscar_en_reglamento(pregunta, texto, max_chars=4000):
+    palabras = [p.lower() for p in pregunta.split() if len(p) > 3]
+    bloques = texto.split("\n\n")
+
+    relevantes = []
+
+    for bloque in bloques:
+        if any(p in bloque.lower() for p in palabras):
+            relevantes.append(bloque)
+
+    resultado = "\n\n".join(relevantes)
+
+    if not resultado:
+        return texto[:max_chars]
+
+    return resultado[:max_chars]
 
 # =========================
 # 🤖 COMANDO IA (/cr)
@@ -99,7 +124,7 @@ async def cr_slash(interaction: discord.Interaction, pregunta: str):
     await interaction.response.defer(thinking=True)
 
     try:
-        REGLAMENTO_LIMITADO = REGLAMENTO_TEXTO[:12000]
+        REGLAMENTO_FILTRADO = buscar_en_reglamento(pregunta, REGLAMENTO_TEXTO)
 
         prompt = f"""
 Sos un asistente de la UTN FRT.
@@ -109,18 +134,19 @@ Si no está, respondé: "No está especificado en el reglamento".
 Sé claro y breve.
 
 REGLAMENTO:
-{REGLAMENTO_LIMITADO}
+{REGLAMENTO_FILTRADO}
 
 PREGUNTA:
 {pregunta}
 """
 
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             contents=prompt
         )
-        # 🔥 Manejo robusto de respuesta
-        texto = response.text if hasattr(response, "text") and response.text else None
+
+        # 🔥 Manejo robusto
+        texto = getattr(response, "text", None)
 
         if not texto and hasattr(response, "candidates"):
             try:
@@ -142,6 +168,7 @@ PREGUNTA:
 # 💬 COMANDO PREFIJO ,cr
 # =========================
 @bot.command(name="cr")
+@cooldown(1, 10, BucketType.user) 
 async def cr_prefix(ctx, *, pregunta: str):
 
     if not REGLAMENTO_TEXTO:
@@ -150,7 +177,7 @@ async def cr_prefix(ctx, *, pregunta: str):
 
     async with ctx.typing():
         try:
-            REGLAMENTO_LIMITADO = REGLAMENTO_TEXTO[:12000]
+            REGLAMENTO_FILTRADO = buscar_en_reglamento(pregunta, REGLAMENTO_TEXTO)
 
             prompt = f"""
 Sos un asistente de la UTN FRT.
@@ -160,19 +187,19 @@ Si no está, respondé: "No está especificado en el reglamento".
 Sé claro y breve.
 
 REGLAMENTO:
-{REGLAMENTO_LIMITADO}
+{REGLAMENTO_FILTRADO}
 
 PREGUNTA:
 {pregunta}
 """
 
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=prompt
             )
 
-            # 🔥 Manejo robusto de respuesta
-            texto = response.text if hasattr(response, "text") and response.text else None
+            # 🔥 Manejo robusto
+            texto = getattr(response, "text", None)
 
             if not texto and hasattr(response, "candidates"):
                 try:
@@ -188,7 +215,6 @@ PREGUNTA:
         except Exception as e:
             print("Error IA:", e)
             await ctx.send("❌ Error con la IA")
-            
 # =========================
 # 📅 BOTÓN CALENDARIO
 # =========================
