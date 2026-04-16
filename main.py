@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import os
-import google.generativeai as genai
 from dotenv import load_dotenv
+from google import genai
 
 # =========================
 # 🔑 CONFIG
@@ -21,13 +21,13 @@ if not DISCORD_TOKEN:
 if not GEMINI_API_KEY:
     raise ValueError("❌ Falta GEMINI_API_KEY en Railway")
 
-print("GEMINI:", GEMINI_API_KEY)
+print("TOKEN cargado:", bool(DISCORD_TOKEN))
+print("GEMINI cargado:", bool(GEMINI_API_KEY))
 
 # =========================
 # 🤖 IA
 # =========================
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 # =========================
 # ⚙️ BOT
@@ -44,13 +44,14 @@ def obtener_contenido_reglamento():
     try:
         with open("Reglamento-de-Estudios-Ord-1549.txt", "r", encoding="utf-8") as f:
             return f.read()
-    except:
+    except Exception as e:
+        print("Error cargando reglamento:", e)
         return None
 
 REGLAMENTO_TEXTO = obtener_contenido_reglamento()
 
 # =========================
-# 🚀 READY (UNO SOLO)
+# 🚀 READY
 # =========================
 @bot.event
 async def on_ready():
@@ -58,10 +59,6 @@ async def on_ready():
 
     try:
         guild = discord.Object(id=GUILD_ID)
-
-        # 🔥 limpia comandos duplicados
-        bot.tree.clear_commands(guild=guild)
-
         synced = await bot.tree.sync(guild=guild)
         print(f"🚀 Slash sync: {len(synced)}")
     except Exception as e:
@@ -98,16 +95,15 @@ async def cr_slash(interaction: discord.Interaction, pregunta: str):
         )
         return
 
-    await interaction.response.defer()
+    await interaction.response.defer(thinking=True)
 
     try:
         prompt = f"""
 Sos un asistente de la UTN FRT.
 
-Reglas:
-- Respondé SOLO usando el reglamento
-- Si no está en el reglamento, decí: "No está especificado en el reglamento"
-- Sé claro y breve
+Usá SOLO el reglamento.
+Si no está, respondé: "No está especificado en el reglamento".
+Sé claro y breve.
 
 REGLAMENTO:
 {REGLAMENTO_TEXTO}
@@ -116,7 +112,10 @@ PREGUNTA:
 {pregunta}
 """
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
 
         texto = getattr(response, "text", None)
 
@@ -126,7 +125,7 @@ PREGUNTA:
         await interaction.followup.send(texto[:2000])
 
     except Exception as e:
-        print(f"Error IA:", e)
+        print("Error IA:", e)
         await interaction.followup.send("❌ Error con la IA")
 
 
@@ -145,10 +144,9 @@ async def cr_prefix(ctx, *, pregunta: str):
             prompt = f"""
 Sos un asistente de la UTN FRT.
 
-Reglas:
-- Respondé SOLO usando el reglamento
-- Si no está en el reglamento, decí: "No está especificado en el reglamento"
-- Sé claro y breve
+Usá SOLO el reglamento.
+Si no está, respondé: "No está especificado en el reglamento".
+Sé claro y breve.
 
 REGLAMENTO:
 {REGLAMENTO_TEXTO}
@@ -157,7 +155,10 @@ PREGUNTA:
 {pregunta}
 """
 
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt
+            )
 
             texto = getattr(response, "text", None)
 
@@ -167,8 +168,9 @@ PREGUNTA:
             await ctx.send(texto[:2000])
 
         except Exception as e:
-            print(f"Error IA:", e)
+            print("Error IA:", e)
             await ctx.send("❌ Error con la IA")
+            
 # =========================
 # 📅 BOTÓN CALENDARIO
 # =========================
@@ -181,22 +183,28 @@ class BotonCalendario(discord.ui.View):
             url="https://raw.githubusercontent.com/Melani2203/archivos-bot/main/CA2026.pdf"
         ))
 
-# slash
-@bot.tree.command(...)
-async def calendario26(interaction: discord.Interaction):
+# =========================
+# 📌 SLASH COMMAND
+# =========================
+@bot.tree.command(
+    name="calendario26",
+    description="Ver calendario académico 2026"
+)
+async def calendario26_slash(interaction: discord.Interaction):
     await interaction.response.send_message(
         embed=crear_embed_calendario(),
         view=BotonCalendario()
     )
 
-# prefix
+# =========================
+# 💬 PREFIX COMMAND
+# =========================
 @bot.command(name="calendario26")
 async def calendario26_prefix(ctx):
     await ctx.send(
         embed=crear_embed_calendario(),
         view=BotonCalendario()
     )
-
 
 # ******* BOTON SYSACAD *******
 class BotonSysacad(discord.ui.View):
