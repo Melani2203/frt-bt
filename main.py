@@ -10,20 +10,23 @@ from dotenv import load_dotenv
 # =========================
 load_dotenv()
 
-TOKEN = os.getenv("DISCORD_TOKEN")
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 GUILD_ID = 1361312541766058184
 
-if not TOKEN:
-    raise ValueError("❌ DISCORD_TOKEN no está configurado")
+if not DISCORD_TOKEN:
+    raise ValueError("❌ Falta DISCORD_TOKEN en Railway")
 
-if not GEMINI_KEY:
-    raise ValueError("❌ GEMINI_API_KEY no está configurado")
+if not GEMINI_API_KEY:
+    raise ValueError("❌ Falta GEMINI_API_KEY en Railway")
+
+print("GEMINI:", GEMINI_API_KEY)
 
 # =========================
 # 🤖 IA
 # =========================
-genai.configure(api_key=GEMINI_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # =========================
@@ -65,6 +68,19 @@ async def on_ready():
         print(f"❌ Error sync: {e}")
 
 # =========================
+# 📅 EMBED CALENDARIO
+# =========================
+def crear_embed_calendario():
+    return discord.Embed(
+        description="# 📅 Calendario Académico\n\n"
+                    "Podés descargar el calendario usando el botón de abajo 👇\n\n"
+                    "También podés consultarlo en el canal <#1361312542244344022> o en la página oficial de la facultad:\n"
+                    "🔗 https://frt.utn.edu.ar/ \n"
+                    "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
+        color=discord.Color.orange()
+    )
+
+# =========================
 # 🤖 COMANDO IA (/cr)
 # =========================
 @bot.tree.command(
@@ -76,28 +92,43 @@ async def on_ready():
 async def cr_slash(interaction: discord.Interaction, pregunta: str):
 
     if not REGLAMENTO_TEXTO:
-        await interaction.response.send_message("❌ Reglamento no cargado", ephemeral=True)
+        await interaction.response.send_message(
+            "❌ Reglamento no cargado",
+            ephemeral=True
+        )
         return
 
     await interaction.response.defer()
 
     try:
         prompt = f"""
-Responde SOLO con este reglamento:
+Sos un asistente de la UTN FRT.
 
+Reglas:
+- Respondé SOLO usando el reglamento
+- Si no está en el reglamento, decí: "No está especificado en el reglamento"
+- Sé claro y breve
+
+REGLAMENTO:
 {REGLAMENTO_TEXTO}
 
-Pregunta: {pregunta}
+PREGUNTA:
+{pregunta}
 """
 
         response = model.generate_content(prompt)
-        texto = response.text[:2000]
 
-        await interaction.followup.send(texto)
+        texto = getattr(response, "text", None)
+
+        if not texto:
+            texto = "❌ No se pudo generar respuesta."
+
+        await interaction.followup.send(texto[:2000])
 
     except Exception as e:
-        print(e)
+        print(f"Error IA:", e)
         await interaction.followup.send("❌ Error con la IA")
+
 
 # =========================
 # 💬 COMANDO PREFIJO ,cr
@@ -110,10 +141,34 @@ async def cr_prefix(ctx, *, pregunta: str):
         return
 
     async with ctx.typing():
-        response = model.generate_content(
-            f"Reglamento: {REGLAMENTO_TEXTO}\nPregunta: {pregunta}"
-        )
-        await ctx.send(response.text[:2000])
+        try:
+            prompt = f"""
+Sos un asistente de la UTN FRT.
+
+Reglas:
+- Respondé SOLO usando el reglamento
+- Si no está en el reglamento, decí: "No está especificado en el reglamento"
+- Sé claro y breve
+
+REGLAMENTO:
+{REGLAMENTO_TEXTO}
+
+PREGUNTA:
+{pregunta}
+"""
+
+            response = model.generate_content(prompt)
+
+            texto = getattr(response, "text", None)
+
+            if not texto:
+                texto = "❌ No se pudo generar respuesta."
+
+            await ctx.send(texto[:2000])
+
+        except Exception as e:
+            print(f"Error IA:", e)
+            await ctx.send("❌ Error con la IA")
 # =========================
 # 📅 BOTÓN CALENDARIO
 # =========================
@@ -126,27 +181,19 @@ class BotonCalendario(discord.ui.View):
             url="https://raw.githubusercontent.com/Melani2203/archivos-bot/main/CA2026.pdf"
         ))
 
-# =========================
-# 📌 SLASH COMMAND
-# =========================
-@bot.tree.command(
-    name="calendario26",
-    description="Ver calendario académico 2026",
-    guild=discord.Object(id=GUILD_ID)
-)
+# slash
+@bot.tree.command(...)
 async def calendario26(interaction: discord.Interaction):
-
-    embed = discord.Embed(
-        description="# 📅 Calendario Académico\n\n"
-                    "Podés descargar el calendario usando el botón de abajo 👇\n\n"
-                    "También podés consultarlo en el canal <#1361312542244344022> o en la página oficial de la facultad:\n"
-                    "🔗 https://frt.utn.edu.ar/ \n"
-                    "o en: https://frt.utn.edu.ar/wp-content/uploads/2025/11/CALENDARIO-ACADEMICO-2026.-Resol.-2394.pdf",
-        color=discord.Color.orange()
+    await interaction.response.send_message(
+        embed=crear_embed_calendario(),
+        view=BotonCalendario()
     )
 
-    await interaction.response.send_message(
-        embed=embed,
+# prefix
+@bot.command(name="calendario26")
+async def calendario26_prefix(ctx):
+    await ctx.send(
+        embed=crear_embed_calendario(),
         view=BotonCalendario()
     )
 
