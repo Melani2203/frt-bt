@@ -98,6 +98,8 @@ async def cr_slash(interaction: discord.Interaction, pregunta: str):
     await interaction.response.defer(thinking=True)
 
     try:
+        REGLAMENTO_LIMITADO = REGLAMENTO_TEXTO[:12000]
+
         prompt = f"""
 Sos un asistente de la UTN FRT.
 
@@ -106,7 +108,7 @@ Si no está, respondé: "No está especificado en el reglamento".
 Sé claro y breve.
 
 REGLAMENTO:
-{REGLAMENTO_TEXTO}
+{REGLAMENTO_LIMITADO}
 
 PREGUNTA:
 {pregunta}
@@ -117,7 +119,14 @@ PREGUNTA:
             contents=prompt
         )
 
-        texto = getattr(response, "text", None)
+        # 🔥 Manejo robusto de respuesta
+        texto = response.text if hasattr(response, "text") and response.text else None
+
+        if not texto and hasattr(response, "candidates"):
+            try:
+                texto = response.candidates[0].content.parts[0].text
+            except:
+                texto = None
 
         if not texto:
             texto = "❌ No se pudo generar respuesta."
@@ -141,6 +150,8 @@ async def cr_prefix(ctx, *, pregunta: str):
 
     async with ctx.typing():
         try:
+            REGLAMENTO_LIMITADO = REGLAMENTO_TEXTO[:12000]
+
             prompt = f"""
 Sos un asistente de la UTN FRT.
 
@@ -149,7 +160,7 @@ Si no está, respondé: "No está especificado en el reglamento".
 Sé claro y breve.
 
 REGLAMENTO:
-{REGLAMENTO_TEXTO}
+{REGLAMENTO_LIMITADO}
 
 PREGUNTA:
 {pregunta}
@@ -160,7 +171,14 @@ PREGUNTA:
                 contents=prompt
             )
 
-            texto = getattr(response, "text", None)
+            # 🔥 Manejo robusto de respuesta
+            texto = response.text if hasattr(response, "text") and response.text else None
+
+            if not texto and hasattr(response, "candidates"):
+                try:
+                    texto = response.candidates[0].content.parts[0].text
+                except:
+                    texto = None
 
             if not texto:
                 texto = "❌ No se pudo generar respuesta."
