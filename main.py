@@ -59,7 +59,6 @@ async def on_ready():
 
     try:
         guild = discord.Object(id=GUILD_ID)
-       bot.tree.clear_commands(guild=guild)
         synced = await bot.tree.sync(guild=guild)
         
         print(f"🚀 Slash commands sincronizados en el servidor: {len(synced)}")
