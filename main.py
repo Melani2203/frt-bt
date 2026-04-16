@@ -59,10 +59,12 @@ async def on_ready():
 
     try:
         guild = discord.Object(id=GUILD_ID)
+       bot.tree.clear_commands(guild=guild)
         synced = await bot.tree.sync(guild=guild)
-        print(f"🚀 Slash sync: {len(synced)}")
+        
+        print(f"🚀 Slash commands sincronizados en el servidor: {len(synced)}")
     except Exception as e:
-        print(f"❌ Error sync: {e}")
+        print(f"❌ Error durante la sincronización: {e}")
 
 # =========================
 # 📅 EMBED CALENDARIO
@@ -738,11 +740,6 @@ class BotonMateria(discord.ui.Button):
                 f"✅ Se te asignó el rol {role.name}",
                 ephemeral=True
             )
-
-@bot.event
-async def on_ready():
-    await bot.tree.clear_commands(guild=discord.Object(id=GUILD_ID))
-    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
 
 # =========================
 # RUN
